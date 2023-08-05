@@ -242,6 +242,7 @@ if __name__ == '__main__':
             offload_state_dict=True,
             low_cpu_mem_usage=True,
             device_map={"": "cpu"},
+            trust_remote_code=True,
         )
     else:
         # Original method without offloading
@@ -250,6 +251,7 @@ if __name__ == '__main__':
             load_in_8bit=False,
             torch_dtype=torch.float16,
             device_map={"": "cpu"},
+            trust_remote_code=True,
         )
 
     ## infer the model size from the checkpoint
@@ -258,28 +260,30 @@ if __name__ == '__main__':
     print(f"Peft version: {peft.__version__}")
     print(f"Loading LoRA for {model_size} model")
 
+    tokenizer = LlamaTokenizer.from_pretrained(base_model_path)
+    print(f"base_model vocab size: {base_model.get_input_embeddings().weight.size(0)}")
+    print(f"tokenizer vocab size: {len(tokenizer)}")
+
+    model_vocab_size = base_model.get_input_embeddings().weight.size(0)
+    assert len(tokenizer) >= model_vocab_size, \
+        (
+            f"The vocab size of the tokenizer {len(tokenizer)} is smaller than the vocab size of the base model {model_vocab_size}\n"
+            "This is not the intended use. Please check your model and tokenizer.")
+    if model_vocab_size != len(tokenizer):
+        base_model.resize_token_embeddings(len(tokenizer))
+        print(f"Extended vocabulary size to {len(tokenizer)}")
+
     lora_model = None
     lora_model_sd = None
     for lora_index, lora_model_path in enumerate(lora_model_paths):
         print(f"Loading LoRA {lora_model_path}...")
-        tokenizer = LlamaTokenizer.from_pretrained(lora_model_path)
-        print(f"base_model vocab size: {base_model.get_input_embeddings().weight.size(0)}")
-        print(f"tokenizer vocab size: {len(tokenizer)}")
-
-        model_vocab_size = base_model.get_input_embeddings().weight.size(0)
-        assert len(tokenizer) >= model_vocab_size, \
-            (
-                f"The vocab size of the tokenizer {len(tokenizer)} is smaller than the vocab size of the base model {model_vocab_size}\n"
-                "This is not the intended use. Please check your model and tokenizer.")
-        if model_vocab_size != len(tokenizer):
-            base_model.resize_token_embeddings(len(tokenizer))
-            print(f"Extended vocabulary size to {len(tokenizer)}")
 
         first_weight = base_model.model.layers[0].self_attn.q_proj.weight
         first_weight_old = first_weight.clone()
 
         print(f"Loading LoRA weights")
         if hasattr(peft.LoraModel, 'merge_and_unload'):
+            print(f"Try to merge with merge_and_unload...")
             try:
                 lora_model = PeftModel.from_pretrained(
                     base_model,
