@@ -38,6 +38,17 @@ from fastchat.train.llama_flash_attn_monkey_patch import (
     replace_llama_attn_with_flash_attn,
 )
 
+# Simon Added, 2023-08-01
+def adapt_model_to_tokenizer(model, tokenizer):
+    model_vocab_size = model.get_input_embeddings().weight.size(0)
+    tokenizer_vocab_size = len(tokenizer)
+    print(f"Vocab of the base model: {model_vocab_size}")
+    print(f"Vocab of the tokenizer: {tokenizer_vocab_size}")
+    if model_vocab_size != tokenizer_vocab_size:
+        assert tokenizer_vocab_size > model_vocab_size
+        print("Resize model embeddings to fit tokenizer")
+        model.resize_token_embeddings(tokenizer_vocab_size)
+    return model, tokenizer
 
 @dataclass
 class TrainingArguments(transformers.TrainingArguments):
@@ -131,6 +142,16 @@ def train():
         else (torch.bfloat16 if training_args.bf16 else torch.float32)
     )
 
+    tokenizer = transformers.AutoTokenizer.from_pretrained(
+        model_args.model_name_or_path,
+        cache_dir=training_args.cache_dir,
+        model_max_length=training_args.model_max_length,
+        padding_side="right",
+        use_fast=False,
+        trust_remote_code=True,
+    )
+    tokenizer.pad_token = tokenizer.unk_token
+
     model = transformers.AutoModelForCausalLM.from_pretrained(
         model_args.model_name_or_path,
         cache_dir=training_args.cache_dir,
@@ -143,7 +164,10 @@ def train():
         )
         if lora_args.q_lora
         else None,
+        trust_remote_code=True,
     )
+    model, tokenizer = adapt_model_to_tokenizer(model, tokenizer)
+
     lora_config = LoraConfig(
         r=lora_args.lora_r,
         lora_alpha=lora_args.lora_alpha,
@@ -168,15 +192,6 @@ def train():
 
     if training_args.gradient_checkpointing:
         model.enable_input_require_grads()
-
-    tokenizer = transformers.AutoTokenizer.from_pretrained(
-        model_args.model_name_or_path,
-        cache_dir=training_args.cache_dir,
-        model_max_length=training_args.model_max_length,
-        padding_side="right",
-        use_fast=False,
-    )
-    tokenizer.pad_token = tokenizer.unk_token
 
     data_module = make_supervised_data_module(tokenizer=tokenizer, data_args=data_args)
     trainer = Trainer(
