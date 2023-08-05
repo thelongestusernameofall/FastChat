@@ -531,14 +531,16 @@ class VicunaAdapter(BaseModelAdapter):
     def load_model(self, model_path: str, from_pretrained_kwargs: dict):
         revision = from_pretrained_kwargs.get("revision", "main")
         tokenizer = AutoTokenizer.from_pretrained(
-            model_path, use_fast=self.use_fast_tokenizer, revision=revision
+            model_path, use_fast=self.use_fast_tokenizer, trust_remote_code=True, revision=revision
         )
         model = AutoModelForCausalLM.from_pretrained(
             model_path,
             low_cpu_mem_usage=True,
+            trust_remote_code=True,
             **from_pretrained_kwargs,
         )
         self.raise_warning_for_old_weights(model)
+        model, tokenizer = adapt_model_to_tokenizer(model, tokenizer)
         return model, tokenizer
 
     def get_default_conv_template(self, model_path: str) -> Conversation:
