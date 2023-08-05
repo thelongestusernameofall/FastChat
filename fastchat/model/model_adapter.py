@@ -46,6 +46,17 @@ peft_share_base_weights = (
     os.environ.get("PEFT_SHARE_BASE_WEIGHTS", "false").lower() == "true"
 )
 
+# Simon Added, 2023-08-01
+def adapt_model_to_tokenizer(model, tokenizer):
+    model_vocab_size = model.get_input_embeddings().weight.size(0)
+    tokenizer_vocab_size = len(tokenizer)
+    print(f"Vocab of the base model: {model_vocab_size}")
+    print(f"Vocab of the tokenizer: {tokenizer_vocab_size}")
+    if model_vocab_size != tokenizer_vocab_size:
+        assert tokenizer_vocab_size > model_vocab_size
+        print("Resize model embeddings to fit tokenizer")
+        model.resize_token_embeddings(tokenizer_vocab_size)
+    return model, tokenizer
 
 class BaseModelAdapter:
     """The base and the default model adapter."""
@@ -61,22 +72,25 @@ class BaseModelAdapter:
             tokenizer = AutoTokenizer.from_pretrained(
                 model_path,
                 use_fast=self.use_fast_tokenizer,
+                trust_remote_code=True,
                 revision=revision,
             )
         except TypeError:
             tokenizer = AutoTokenizer.from_pretrained(
                 model_path,
                 use_fast=False,
+                trust_remote_code=True,
                 revision=revision,
             )
         try:
             model = AutoModelForCausalLM.from_pretrained(
-                model_path, low_cpu_mem_usage=True, **from_pretrained_kwargs
+                model_path, low_cpu_mem_usage=True, trust_remote_code=True, **from_pretrained_kwargs
             )
         except NameError:
             model = AutoModel.from_pretrained(
-                model_path, low_cpu_mem_usage=True, **from_pretrained_kwargs
+                model_path, low_cpu_mem_usage=True, trust_remote_code=True, **from_pretrained_kwargs
             )
+        model, tokenizer = adapt_model_to_tokenizer(model, tokenizer)
         return model, tokenizer
 
     def load_compress_model(self, model_path, device, torch_dtype, revision="main"):
@@ -225,6 +239,8 @@ def load_model(
             )
             if debug:
                 print(model)
+
+            model, tokenizer = adapt_model_to_tokenizer(model, tokenizer)
             return model, tokenizer
     elif awq_config and awq_config.wbits < 16:
         assert (
@@ -248,6 +264,7 @@ def load_model(
             )
         else:
             model.to(device)
+        model, tokenizer = adapt_model_to_tokenizer(model, tokenizer)
         return model, tokenizer
     elif gptq_config and gptq_config.wbits < 16:
         model, tokenizer = load_gptq_quantized(model_path, gptq_config)

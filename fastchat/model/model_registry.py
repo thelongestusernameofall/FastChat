@@ -8,7 +8,9 @@ ModelInfo = namedtuple("ModelInfo", ["simple_name", "link", "description"])
 
 model_info = {}
 
-
+register_model_info(
+    ['text-davinci-003'], 'text-davinci-003', "https://www.iceswordlab.com", "LLM by Icesword"
+)
 def register_model_info(
     full_names: List[str], simple_name: str, link: str, description: str
 ):

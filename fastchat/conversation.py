@@ -282,11 +282,23 @@ def get_conv_template(name: str) -> Conversation:
     """Get a conversation template."""
     return conv_templates[name].copy()
 
+register_conv_template(
+    Conversation(
+        name="one_shot",
+        system_message="",
+        roles=("USER", "ASSISTANT"),
+        messages=(),
+        offset=0,
+        sep_style=SeparatorStyle.ADD_COLON_TWO,
+        sep=" ",
+        sep2="</s>",
+    )
+)
 
 # A template with a one-shot conversation example
 register_conv_template(
     Conversation(
-        name="one_shot",
+        name="one_shot-original",
         system_message="A chat between a curious human and an artificial intelligence assistant. "
         "The assistant gives helpful, detailed, and polite answers to the human's questions.",
         roles=("Human", "Assistant"),
