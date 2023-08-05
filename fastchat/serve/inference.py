@@ -68,6 +68,7 @@ def generate_stream(
 ):
     # Read parameters
     prompt = params["prompt"]
+    print(f"Prompt: {prompt}")
     len_prompt = len(prompt)
     temperature = float(params.get("temperature", 1.0))
     repetition_penalty = float(params.get("repetition_penalty", 1.0))
