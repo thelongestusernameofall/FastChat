@@ -50,6 +50,14 @@ peft_share_base_weights = (
 def adapt_model_to_tokenizer(model, tokenizer):
     model_vocab_size = model.get_input_embeddings().weight.size(0)
     tokenizer_vocab_size = len(tokenizer)
+    if model_vocab_size ==  0:
+        # 尝试直接从模型获取输入嵌入
+        try:
+            model_vocab_size = model.embeddings.word_embeddings.weight.size(0)
+        except AttributeError:
+            print("Unable to directly access embeddings from model.")
+            return model, tokenizer
+
     print(f"Vocab of the base model: {model_vocab_size}")
     print(f"Vocab of the tokenizer: {tokenizer_vocab_size}")
     if model_vocab_size != tokenizer_vocab_size:
