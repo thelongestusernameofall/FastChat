@@ -55,7 +55,12 @@ def adapt_model_to_tokenizer(model, tokenizer):
         try:
             model_vocab_size = model.embeddings.word_embeddings.weight.size(0)
         except AttributeError:
-            print("Unable to directly access embeddings from model.")
+            try:
+                model_vocab_size = model.transformer.wte.weight.size(0)
+            except AttributeError:
+                print("Unable to directly access embeddings (model.transformer.wte.weight) from model.")
+                return model, tokenizer
+            print("Unable to directly access embeddings (model.embeddings.word_embeddings.weight) from model.")
             return model, tokenizer
 
     print(f"Vocab of the base model: {model_vocab_size}")
