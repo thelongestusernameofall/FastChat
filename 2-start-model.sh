@@ -7,7 +7,7 @@ model=../vicuna-13b-v1.3-sft725-v3
 model=/home/huangshaomang/research/AI/GPT/LLama2/meta/llama2-hf/Llama-2-7b-chat-hf
 model=/home/huangshaomang/research/AI/GPT/LLama2/meta/llama2-hf/Llama-2-70b-hf
 model=../llama-2/LLaMA-2-7B-32K
-model=../vicuna-13b-v1.3-extoken
+model=../vicuna-13b-v1.3-extoken-sft805
 echo "runing ${model}"
 
 #export CUDA_VISIBLE_DEVICES=0,1

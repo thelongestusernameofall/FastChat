@@ -1,11 +1,12 @@
 #!/bin/bash
 # train lora and merge
 
-base_model=../vicuna-13b-v1.3-sft731-v5
-lora_name=../vicuna-13b-v1.3-sft731-v6-lora
-sft_name=../vicuna-13b-v1.3-sft731-v6
-data_path=../merged-all-0731.json
-epochs=2
+base_model=../vicuna-13b-v1.3-sft807-v2
+lora_name=../vicuna-13b-v1.3-sft807-v3-lora
+sft_name=../vicuna-13b-v1.3-sft807-v3
+data_path=../merged-retrain-807-2.json
+epochs=6
+batch_size=1
 
 deepspeed fastchat/train/train_lora.py \
     --deepspeed deepspeed.json \
@@ -17,8 +18,8 @@ deepspeed fastchat/train/train_lora.py \
     --bf16 True \
     --output_dir ${lora_name} \
     --num_train_epochs ${epochs} \
-    --per_device_train_batch_size 6 \
-    --per_device_eval_batch_size 6 \
+    --per_device_train_batch_size ${batch_size} \
+    --per_device_eval_batch_size ${batch_size} \
     --gradient_accumulation_steps 1 \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
