@@ -85,7 +85,6 @@ class BaseModelAdapter:
             tokenizer = AutoTokenizer.from_pretrained(
                 model_path,
                 use_fast=self.use_fast_tokenizer,
-                trust_remote_code=True,
                 revision=revision,
                 trust_remote_code=True,
             )
