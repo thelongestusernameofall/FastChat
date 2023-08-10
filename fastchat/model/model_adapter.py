@@ -130,7 +130,7 @@ def register_model_adapter(cls):
 def get_model_adapter(model_path: str) -> BaseModelAdapter:
     """Get a model adapter for a model_path."""
     model_path_basename = os.path.basename(os.path.normpath(model_path))
-
+    print(f"get_model_adapter for path: {model_path}")
     # Try the basename of model_path at first
     for adapter in model_adapters:
         if adapter.match(model_path_basename) and type(adapter) != BaseModelAdapter:
