@@ -8,9 +8,6 @@ ModelInfo = namedtuple("ModelInfo", ["simple_name", "link", "description"])
 
 model_info = {}
 
-register_model_info(
-    ['text-davinci-003'], 'text-davinci-003', "https://www.iceswordlab.com", "LLM by Icesword"
-)
 def register_model_info(
     full_names: List[str], simple_name: str, link: str, description: str
 ):
@@ -19,10 +16,12 @@ def register_model_info(
     for full_name in full_names:
         model_info[full_name] = info
 
-
 def get_model_info(name: str) -> ModelInfo:
     return model_info[name]
 
+register_model_info(
+    ['text-davinci-003'], 'text-davinci-003', "https://www.iceswordlab.com", "LLM by Icesword"
+)
 
 register_model_info(
     ["gpt-4"], "ChatGPT-4", "https://openai.com/research/gpt-4", "ChatGPT-4 by OpenAI"
