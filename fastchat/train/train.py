@@ -47,6 +47,9 @@ class DataArguments:
         default=None, metadata={"help": "Path to the evaluation data."}
     )
     lazy_preprocess: bool = False
+    conv_name: str = field(
+        default="vicuna", metadata={"help": "Conversation template name."}
+    )
 
 
 @dataclass
@@ -81,8 +84,9 @@ def safe_save_model_for_hf_trainer(trainer: transformers.Trainer, output_dir: st
 def preprocess(
     sources,
     tokenizer: transformers.PreTrainedTokenizer,
+    conv_name: str = "vicuna"
 ) -> Dict:
-    conv = get_conversation_template("vicuna")
+    conv = get_conversation_template(conv_name)
     roles = {"human": conv.roles[0], "gpt": conv.roles[1]}
 
     # Apply prompt templates
@@ -160,12 +164,12 @@ def preprocess(
 class SupervisedDataset(Dataset):
     """Dataset for supervised fine-tuning."""
 
-    def __init__(self, raw_data, tokenizer: transformers.PreTrainedTokenizer):
+    def __init__(self, raw_data, tokenizer: transformers.PreTrainedTokenizer, conv_name: str = "vicuna"):
         super(SupervisedDataset, self).__init__()
 
         rank0_print("Formatting inputs...")
         sources = [example["conversations"] for example in raw_data]
-        data_dict = preprocess(sources, tokenizer)
+        data_dict = preprocess(sources, tokenizer, conv_name=conv_name)
 
         self.input_ids = data_dict["input_ids"]
         self.labels = data_dict["labels"]
@@ -185,9 +189,10 @@ class SupervisedDataset(Dataset):
 class LazySupervisedDataset(Dataset):
     """Dataset for supervised fine-tuning."""
 
-    def __init__(self, raw_data, tokenizer: transformers.PreTrainedTokenizer):
+    def __init__(self, raw_data, tokenizer: transformers.PreTrainedTokenizer, conv_name: str = "vicuna"):
         super(LazySupervisedDataset, self).__init__()
         self.tokenizer = tokenizer
+        self.conv_name = conv_name
 
         rank0_print("Formatting inputs...Skip in lazy mode")
         self.tokenizer = tokenizer
@@ -201,7 +206,7 @@ class LazySupervisedDataset(Dataset):
         if i in self.cached_data_dict:
             return self.cached_data_dict[i]
 
-        ret = preprocess([self.raw_data[i]["conversations"]], self.tokenizer)
+        ret = preprocess([self.raw_data[i]["conversations"]], self.tokenizer, conv_name=self.conv_name)
         ret = dict(
             input_ids=ret["input_ids"][0],
             labels=ret["labels"][0],
@@ -222,11 +227,11 @@ def make_supervised_data_module(
     rank0_print("Loading data...")
 
     train_json = json.load(open(data_args.data_path, "r"))
-    train_dataset = dataset_cls(train_json, tokenizer=tokenizer)
+    train_dataset = dataset_cls(train_json, tokenizer=tokenizer, conv_name=data_args.conv_name)
 
     if data_args.eval_data_path:
         eval_json = json.load(open(data_args.eval_data_path, "r"))
-        eval_dataset = dataset_cls(eval_json, tokenizer=tokenizer)
+        eval_dataset = dataset_cls(eval_json, tokenizer=tokenizer, conv_name=data_args.conv_name)
     else:
         eval_dataset = None
 
