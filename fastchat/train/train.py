@@ -113,19 +113,16 @@ def preprocess(
     ).input_ids
     targets = input_ids.clone()
 
-    # assert conv.sep_style == SeparatorStyle.ADD_COLON_TWO
+    if conv.sep_style != SeparatorStyle.LLAMA2:
+        assert conv.sep_style == SeparatorStyle.ADD_COLON_TWO
 
     # Mask targets. Only compute loss on the assistant outputs.
     sep = conv.sep + conv.roles[1] + ": "
     if conv.sep_style == SeparatorStyle.LLAMA2:
         sep = conv.roles[1] + ' '
-    print(f"dbg 1. train.py: sep={sep}")
     for conversation, target in zip(conversations, targets):
         total_len = int(target.ne(tokenizer.pad_token_id).sum())
-        print(f"dbg 1. train.py: total_len={total_len}")
-        print(f"dbg 1. train.py: conversation len={len(conversation)}")
         turns = conversation.split(conv.sep2)
-        print(f"dbg 2. train.py: turns={turns}")
         cur_len = 1
         target[:cur_len] = IGNORE_TOKEN_ID
         for i, turn in enumerate(turns):
@@ -134,7 +131,6 @@ def preprocess(
             turn_len = len(tokenizer(turn).input_ids)
 
             parts = turn.split(sep)
-            print(f"dbg 3. train.py: parts={parts}")
             if len(parts) != 2:
                 break
             parts[0] += sep
@@ -142,19 +138,25 @@ def preprocess(
             instruction_len = len(tokenizer(parts[0]).input_ids) - 2
 
             if conv.sep_style == SeparatorStyle.LLAMA2:
-                instruction_len = len(tokenizer(parts[0]).input_ids)
+                if i > 0:
+                    cur_len += 1
+                    instruction_len += 1
+                if i > 1:
+                    cur_len += 1
 
             # Ignore the user instructions
             target[cur_len : cur_len + instruction_len] = IGNORE_TOKEN_ID
-            print(f"dbg 4. train.py: ignored={turn[cur_len : cur_len + instruction_len]}")
             cur_len += turn_len
 
+        if conv.sep_style == SeparatorStyle.LLAMA2:
+            cur_len += 2
         target[cur_len:] = IGNORE_TOKEN_ID
 
         if False:  # Inspect and check the correctness of masking
             z = target.clone()
             z = torch.where(z == IGNORE_TOKEN_ID, tokenizer.unk_token_id, z)
             rank0_print(tokenizer.decode(z))
+            print('targets',tokenizer.decode(z))
 
         if cur_len < tokenizer.model_max_length:
             if cur_len != total_len:
