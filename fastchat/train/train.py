@@ -118,7 +118,7 @@ def preprocess(
     # Mask targets. Only compute loss on the assistant outputs.
     sep = conv.sep + conv.roles[1] + ": "
     if conv.sep_style == SeparatorStyle.LLAMA2:
-        sep = conv.sep + conv.roles[1]
+        sep = conv.roles[1] + ' '
     print(f"dbg 1. train.py: sep={sep}")
     for conversation, target in zip(conversations, targets):
         total_len = int(target.ne(tokenizer.pad_token_id).sum())
