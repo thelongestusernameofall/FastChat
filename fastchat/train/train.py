@@ -140,9 +140,12 @@ def preprocess(
             # "-2" is hardcoded for the LLaMA tokenizer to make the offset correct.
             instruction_len = len(tokenizer(parts[0]).input_ids) - 2
 
+            if conv.sep_style == SeparatorStyle.LLAMA2:
+                instruction_len = len(tokenizer(parts[0]).input_ids)
+
             # Ignore the user instructions
             target[cur_len : cur_len + instruction_len] = IGNORE_TOKEN_ID
-            print(f"dbg 4. train.py: ignored={turn[:instruction_len]}")
+            print(f"dbg 4. train.py: ignored={turn[cur_len : cur_len + instruction_len]}")
             cur_len += turn_len
 
         target[cur_len:] = IGNORE_TOKEN_ID
