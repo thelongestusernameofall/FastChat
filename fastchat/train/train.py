@@ -122,7 +122,8 @@ def preprocess(
     print(f"dbg 1. train.py: sep={sep}")
     for conversation, target in zip(conversations, targets):
         total_len = int(target.ne(tokenizer.pad_token_id).sum())
-
+        print(f"dbg 1. train.py: total_len={total_len}")
+        print(f"dbg 1. train.py: conversation len={len(conversation)}")
         turns = conversation.split(conv.sep2)
         print(f"dbg 2. train.py: turns={turns}")
         cur_len = 1
