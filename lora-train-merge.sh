@@ -41,7 +41,7 @@ deepspeed fastchat/train/train_lora.py \
     --per_device_train_batch_size ${batch_size} \
     --per_device_eval_batch_size ${batch_size} \
     --gradient_accumulation_steps 1 \
-    --evaluation_strategy "steps" \
+    --evaluation_strategy "no" \
     --eval_steps 100  \
     --save_strategy "steps" \
     --save_steps 200 \
