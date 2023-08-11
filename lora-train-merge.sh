@@ -1,12 +1,12 @@
 #!/bin/bash
 # train lora and merge
 
-base_model=../vicuna-13b-v1.3-sft807-v2
-lora_name=../vicuna-13b-v1.3-sft807-v3-lora
-sft_name=../vicuna-13b-v1.3-sft807-v3
-data_path=../merged-retrain-807-2.json
-epochs=6
-batch_size=1
+base_model=../llama-2/Llama-2-13b-chat-hf
+lora_name=../llama-2/Llama-2-13b-chat-hf-sft811-lora
+sft_name=../llama-2/Llama-2-13b-chat-hf-sft811
+data_path=../sandbox-competion-0731-clean.json
+epochs=10
+batch_size=8
 #conv_name="vicuna"
 conv_name="llama-2"
 
