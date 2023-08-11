@@ -119,11 +119,12 @@ def preprocess(
     sep = conv.sep + conv.roles[1] + ": "
     if conv.sep_style == SeparatorStyle.LLAMA2:
         sep = conv.sep + conv.roles[1]
-
+    print(f"dbg 1. train.py: sep={sep}")
     for conversation, target in zip(conversations, targets):
         total_len = int(target.ne(tokenizer.pad_token_id).sum())
 
         turns = conversation.split(conv.sep2)
+        print(f"dbg 2. train.py: turns={turns}")
         cur_len = 1
         target[:cur_len] = IGNORE_TOKEN_ID
         for i, turn in enumerate(turns):
@@ -132,6 +133,7 @@ def preprocess(
             turn_len = len(tokenizer(turn).input_ids)
 
             parts = turn.split(sep)
+            print(f"dbg 3. train.py: parts={parts}")
             if len(parts) != 2:
                 break
             parts[0] += sep
@@ -140,6 +142,7 @@ def preprocess(
 
             # Ignore the user instructions
             target[cur_len : cur_len + instruction_len] = IGNORE_TOKEN_ID
+            print(f"dbg 4. train.py: ignored={turn[:instruction_len]}")
             cur_len += turn_len
 
         target[cur_len:] = IGNORE_TOKEN_ID
