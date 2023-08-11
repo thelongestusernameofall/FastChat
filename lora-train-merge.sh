@@ -10,30 +10,24 @@ batch_size=1
 #conv_name="vicuna"
 conv_name="llama-2"
 
-#deepspeed fastchat/train/train_lora.py \
-#    --deepspeed deepspeed.json \
-#    --lora_r 8 \
-#    --lora_alpha 32 \
-#    --lora_dropout 0.05 \
-#    --model_name_or_path ${base_model} \
-#    --data_path ${data_path} \
-#    --bf16 True \
-#    --output_dir ${lora_name} \
-#    --num_train_epochs ${epochs} \
-#    --per_device_train_batch_size ${batch_size} \
-#    --per_device_eval_batch_size ${batch_size} \
-#    --gradient_accumulation_steps 1 \
-#    --evaluation_strategy "no" \
-#    --save_strategy "steps" \
-#    --save_steps 3000 \
-#    --save_total_limit 3 \
-#    --learning_rate 2e-5 \
-#    --weight_decay 0. \
-#    --warmup_ratio 0.03 \
-#    --lr_scheduler_type "cosine" \
-#    --logging_steps 1 \
-#    --tf32 True \
-#    --model_max_length 512
+# Check for the --overwrite flag
+if [[ "$1" == "--overwrite" ]]; then
+    if [ -d "${lora_name}" ] || [ -f "${lora_name}" ]; then
+        rm -rf "${lora_name}"
+    fi
+    if [ -d "${sft_name}" ] || [ -f "${sft_name}" ]; then
+        rm -rf "${sft_name}"
+    fi
+else
+    if [ -d "${lora_name}" ] || [ -f "${lora_name}" ]; then
+        echo "目录或文件 ${lora_name} 已经存在"
+        exit 1
+    fi
+    if [ -d "${sft_name}" ] || [ -f "${sft_name}" ]; then
+        echo "目录或文件 ${sft_name} 已经存在"
+        exit 1
+    fi
+fi
 
 deepspeed fastchat/train/train_lora.py \
     --model_name_or_path ${base_model}  \
