@@ -1236,7 +1236,9 @@ class Llama2Adapter(BaseModelAdapter):
     """The model adapter for llama-2"""
 
     def match(self, model_path: str):
-        return "llama-2" in model_path.lower()
+        llama2_models = ["llama-2", "icesword-2", "icesword-002"]
+        # return "llama-2" in model_path.lower()
+        return any([m in model_path.lower() for m in llama2_models])
 
     def load_model(self, model_path: str, from_pretrained_kwargs: dict):
         model, tokenizer = super().load_model(model_path, from_pretrained_kwargs)
