@@ -1,10 +1,14 @@
 #!/bin/bash
 
-host=10.178.11.72
-port=8001
+#host=10.178.11.72
+#port=8001
+
+host=10.163.166.72
+port=81
+model='text-icesword-002'
 curl http://${host}:${port}/v1/chat/completions \
           -H "Content-Type: application/json" \
-          -d '{
-          "model": "text-davinci-003",
-          "messages": [{"role": "user", "content": "Hello! What is your name?"}]
-}'
+          -d "{
+          \"model\": \"${model}\",
+          \"messages\": [{\"role\": \"user\", \"content\": \"Hello! What is your name?\"}]
+}"
