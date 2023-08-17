@@ -393,7 +393,7 @@ def add_model_args(parser):
     parser.add_argument(
         "--max-gpu-memory",
         type=str,
-        help="The maximum memory per gpu. Use a string like '13Gib'",
+        help="The maximum memory per GPU for storing model weights. Use a string like '13Gib'",
     )
     parser.add_argument(
         "--load-8bit", action="store_true", help="Use 8-bit quantization"
@@ -1303,7 +1303,7 @@ class WizardCoderAdapter(BaseModelAdapter):
         return "wizardcoder" in model_path.lower()
 
     def get_default_conv_template(self, model_path: str) -> Conversation:
-        # Same as Alpaca, see : 
+        # Same as Alpaca, see :
         # https://github.com/nlpxucan/WizardLM/blob/main/WizardCoder/src/inference_wizardcoder.py#L60
         return get_conv_template("alpaca")
 
@@ -1333,25 +1333,166 @@ class QwenChatAdapter(BaseModelAdapter):
         from transformers.generation import GenerationConfig
 
         revision = from_pretrained_kwargs.get("revision", "main")
-        model = AutoModelForCausalLM.from_pretrained(
+        config = AutoConfig.from_pretrained(
             model_path,
-            low_cpu_mem_usage=True,
             trust_remote_code=True,
-            fp16=True,
-            **from_pretrained_kwargs,
-        ).eval()
-        model.generation_config = GenerationConfig.from_pretrained(
+        )
+        config.use_flash_attn = False
+        config.fp16 = True
+        generation_config = GenerationConfig.from_pretrained(
             model_path, trust_remote_code=True
         )
+        model = AutoModelForCausalLM.from_pretrained(
+            model_path,
+            config=config,
+            low_cpu_mem_usage=True,
+            trust_remote_code=True,
+            **from_pretrained_kwargs,
+        ).eval()
         if hasattr(model.config, "use_dynamic_ntk") and model.config.use_dynamic_ntk:
             model.config.max_sequence_length = 16384
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_path, trust_remote_code=True, revision=revision
+        )
+        tokenizer.eos_token_id = config.eos_token_id
+        tokenizer.bos_token_id = config.bos_token_id
+        tokenizer.pad_token_id = generation_config.pad_token_id
+        model.config.eos_token_id = tokenizer.eos_token_id
+        model.config.bos_token_id = tokenizer.bos_token_id
+        model.config.pad_token_id = tokenizer.pad_token_id
+
+        return model, tokenizer
+
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("qwen-7b-chat")
+
+
+class BGEAdapter(BaseModelAdapter):
+    """The model adapter for BGE"""
+
+    use_fast_tokenizer = False
+
+    def match(self, model_path: str):
+        return "bge" in model_path.lower()
+
+    def load_model(self, model_path: str, from_pretrained_kwargs: dict):
+        revision = from_pretrained_kwargs.get("revision", "main")
+        model = AutoModel.from_pretrained(
+            model_path,
+            **from_pretrained_kwargs,
+        )
         tokenizer = AutoTokenizer.from_pretrained(
             model_path, trust_remote_code=True, revision=revision
         )
         return model, tokenizer
 
     def get_default_conv_template(self, model_path: str) -> Conversation:
-        return get_conv_template("qwen-7b-chat")
+        return get_conv_template("one_shot")
+
+
+class AquilaChatAdapter(BaseModelAdapter):
+    """The model adapter for BAAI/AquilaChat-7B"""
+
+    def match(self, model_path: str):
+        return "aquila" in model_path.lower()
+
+    def load_model(self, model_path: str, from_pretrained_kwargs: dict):
+        revision = from_pretrained_kwargs.get("revision", "main")
+        model = AutoModelForCausalLM.from_pretrained(
+            model_path,
+            low_cpu_mem_usage=True,
+            trust_remote_code=True,
+            **from_pretrained_kwargs,
+        )
+        model = model.eval()
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_path, trust_remote_code=True, revision=revision
+        )
+        return model, tokenizer
+
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("aquila-chat")
+
+
+class Lamma2ChineseAdapter(BaseModelAdapter):
+    """The model adapter for FlagAlpha/LLama2-Chinese sft"""
+
+    def match(self, model_path: str):
+        return "llama2-chinese" in model_path.lower()
+
+    def load_model(self, model_path: str, from_pretrained_kwargs: dict):
+        revision = from_pretrained_kwargs.get("revision", "main")
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_path,
+            trust_remote_code=True,
+            revision=revision,
+        )
+        model = AutoModelForCausalLM.from_pretrained(
+            model_path,
+            trust_remote_code=True,
+            low_cpu_mem_usage=True,
+            **from_pretrained_kwargs,
+        )
+        return model, tokenizer
+
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("llama2-chinese")
+
+
+class VigogneInstructAdapter(BaseModelAdapter):
+    """The model adapter for Vigogne-Instruct"""
+
+    use_fast_tokenizer = False
+
+    def match(self, model_path: str):
+        return "vigogne" in model_path.lower() and "instruct" in model_path.lower()
+
+    def load_model(self, model_path: str, from_pretrained_kwargs: dict):
+        revision = from_pretrained_kwargs.get("revision", "main")
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_path,
+            use_fast=self.use_fast_tokenizer,
+            trust_remote_code=True,
+            revision=revision,
+        )
+        model = AutoModelForCausalLM.from_pretrained(
+            model_path,
+            trust_remote_code=True,
+            low_cpu_mem_usage=True,
+            **from_pretrained_kwargs,
+        ).eval()
+        return model, tokenizer
+
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("alpaca")
+
+
+class VigogneChatAdapter(BaseModelAdapter):
+    """The model adapter for Vigogne-Chat"""
+
+    use_fast_tokenizer = False
+
+    def match(self, model_path: str):
+        return "vigogne" in model_path.lower() and "chat" in model_path.lower()
+
+    def load_model(self, model_path: str, from_pretrained_kwargs: dict):
+        revision = from_pretrained_kwargs.get("revision", "main")
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_path,
+            use_fast=self.use_fast_tokenizer,
+            trust_remote_code=True,
+            revision=revision,
+        )
+        model = AutoModelForCausalLM.from_pretrained(
+            model_path,
+            trust_remote_code=True,
+            low_cpu_mem_usage=True,
+            **from_pretrained_kwargs,
+        ).eval()
+        return model, tokenizer
+
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("vigogne-chat")
 
 
 # Note: the registration order matters.
@@ -1402,6 +1543,11 @@ register_model_adapter(CuteGPTAdapter)
 register_model_adapter(OpenOrcaAdapter)
 register_model_adapter(WizardCoderAdapter)
 register_model_adapter(QwenChatAdapter)
+register_model_adapter(AquilaChatAdapter)
+register_model_adapter(BGEAdapter)
+register_model_adapter(Lamma2ChineseAdapter)
+register_model_adapter(VigogneInstructAdapter)
+register_model_adapter(VigogneChatAdapter)
 
 # After all adapters, try the default base adapter.
 register_model_adapter(BaseModelAdapter)
