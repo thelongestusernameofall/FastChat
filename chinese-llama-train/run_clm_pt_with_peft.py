@@ -504,8 +504,11 @@ def main():
                 assert lm_datasets.features.type == processed_dataset["train"].features.type
                 lm_datasets = concatenate_datasets([lm_datasets, processed_dataset["train"]])
 
-        if isinstance(lm_datasets, list):
+        if isinstance(lm_datasets, list) and lm_datasets:
             lm_datasets = concatenate_datasets(lm_datasets)
+        elif not lm_datasets:
+            raise ValueError("lm_datasets is an empty list!")
+
         lm_datasets = lm_datasets.train_test_split(test_size = data_args.validation_split_percentage)
 
     if training_args.do_train:
