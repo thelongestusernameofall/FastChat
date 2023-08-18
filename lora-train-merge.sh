@@ -1,14 +1,15 @@
 #!/bin/bash
 # train lora and merge
 
-base_model=../llama-2/Llama-2-13b-chat-hf
-lora_name=../llama-2/Llama-2-13b-chat-hf-sft811-lora
-sft_name=../llama-2/Llama-2-13b-chat-hf-sft811
-data_path=../sandbox-competion-0731-clean.json
-epochs=10
-batch_size=8
-#conv_name="vicuna"
-conv_name="llama-2"
+base_model=../llama-2-zh/chinese-alpaca-2-13b-sft817-v3
+lora_name=../llama-2-zh/chinese-alpaca-2-13b-sft817-v4-lora
+sft_name=../llama-2-zh/chinese-alpaca-2-13b-sft817-v4
+data_path=../new-0817-clean.json
+epochs=3
+batch_size=1
+conv_name="vicuna"
+#conv_name="llama-2"
+max_length=1024
 
 # Check for the --overwrite flag
 if [[ "$1" == "--overwrite" ]]; then
@@ -44,7 +45,7 @@ deepspeed fastchat/train/train_lora.py \
     --evaluation_strategy "no" \
     --eval_steps 100  \
     --save_strategy "steps" \
-    --save_steps 200 \
+    --save_steps 2000 \
     --save_total_limit 2 \
     --learning_rate 2e-5 \
     --weight_decay 0. \
@@ -53,7 +54,7 @@ deepspeed fastchat/train/train_lora.py \
     --logging_strategy "steps" \
     --logging_steps 1 \
     --tf32 True \
-    --model_max_length 2048 \
+    --model_max_length ${max_length} \
     --q_lora False \
     --deepspeed deepspeed.json \
     --gradient_checkpointing True \

@@ -1,13 +1,13 @@
 #!/bin/bash
 
 #model=../llama-2/LLaMA-2-7B-32K
-model=../llama-2/Llama-2-13b-chat-hf
+model=../llama-2-zh/chinese-alpaca-2-13b
+model=../llama-2-zh/chinese-alpaca-2-13b-sft817-v3
 
 #export CUDA_VISIBLE_DEVICES=0,1
-export CUDA_VISIBLE_DEVICES=0
+export CUDA_VISIBLE_DEVICES=1
 
-#name='text-davinci-003'
-name='simon-llama-2-7b'
+name='text-davinci-003'
 gpu_num=1
 
 echo "runing ${model} with name ${name}"
