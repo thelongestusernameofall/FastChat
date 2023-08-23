@@ -468,7 +468,7 @@ def main():
 
         # SimonAdd:
         # concatenated_examples['labels'] = concatenated_examples['input_ids'].copy()
-        logger.info(f"concatenated_examples is {concatenated_examples}")
+        # logger.info(f"concatenated_examples is {concatenated_examples}")
 
         items = {}
         for key in concatenated_examples.keys():
