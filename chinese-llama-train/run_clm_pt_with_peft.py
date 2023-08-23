@@ -457,6 +457,7 @@ def main():
             for k, t in concatenated_examples.items()
         }
         result["labels"] = result["input_ids"].copy()
+        print(f"length of result: {len(result)}")
         return result
     with training_args.main_process_first(desc="dataset map tokenization and grouping"):
         lm_datasets = []

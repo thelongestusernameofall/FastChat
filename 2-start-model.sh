@@ -3,6 +3,7 @@
 #model=../llama-2/LLaMA-2-7B-32K
 model=../llama-2-zh/chinese-alpaca-2-13b
 model=../llama-2-zh/chinese-alpaca-2-13b-sft817-v3
+model=../vicuna-13b-pt01
 
 #export CUDA_VISIBLE_DEVICES=0,1
 export CUDA_VISIBLE_DEVICES=1

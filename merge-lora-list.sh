@@ -2,9 +2,9 @@
 # merge lora list
 
 # lora_list is a list of lora models
-base_model=../vicuna-13b-v1.3-sft807-v2
-lora_list=(../vicuna-13b-v1.3-sft807-v3-lora )
-output_model=../vicuna-13b-v1.3-sft807-v3
+base_model=../llama-2/Llama-2-13b-hf
+lora_list=(../pretrain-output/pt_lora_model/ )
+output_model=../pt01
 
 temp_sft=../temp-sft
 temp_base=../temp-base
