@@ -19,8 +19,8 @@ block_size=1024
 
 deepspeed_config_file=chinese-llama-train/ds_zero2_no_offload.json
 
-#deepspeed chinese-llama-train/run_clm_pt_with_peft.py \
-torchrun --nnodes 1 --nproc_per_node 1 chinese-llama-train/run_clm_pt_with_peft.py \
+#torchrun --nnodes 1 --nproc_per_node 1 chinese-llama-train/run_clm_pt_with_peft.py \
+deepspeed chinese-llama-train/run_clm_pt_with_peft.py \
     --deepspeed ${deepspeed_config_file} \
     --model_name_or_path ${pretrained_model} \
     --tokenizer_name_or_path ${chinese_tokenizer_path} \
