@@ -458,7 +458,8 @@ def main():
         }
         # 很明显<s>token和正文的第一个token不需要预测。
         result["labels"] = result["input_ids"].copy()
-        result['labels'][:2] = [-100]*2
+        for i in range(len(result["labels"])):
+            result["labels"][i][:2] = [-100]*2
         logger.info(f"length of result: {len(result)}")
         return result
     def extend_group_texts(examples):
