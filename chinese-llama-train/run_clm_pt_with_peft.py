@@ -456,9 +456,57 @@ def main():
             k: [t[i : i + block_size] for i in range(0, total_length, block_size)]
             for k, t in concatenated_examples.items()
         }
+        # 很明显<s>token和正文的第一个token不需要预测。
         result["labels"] = result["input_ids"].copy()
+        result['labels'][:2] = [-100]*2
         logger.info(f"length of result: {len(result)}")
         return result
+    def extend_group_texts(examples):
+        # Concatenate all texts.
+        concatenated_examples = {k: list(chain(*examples[k])) for k in examples.keys()}
+
+        # SimonAdd:
+        # concatenated_examples['labels'] = concatenated_examples['input_ids'].copy()
+        logger.info(f"concatenated_examples is {concatenated_examples}")
+
+        items = {}
+        for key in concatenated_examples.keys():
+            items[key] = []
+        items['labels'] = []
+
+        for i in range(len(concatenated_examples['input_ids'])):
+            label_i = concatenated_examples['input_ids'].copy()
+            label_i[:i] = [-100] * i
+            for key in concatenated_examples.keys():
+                items[key].append(concatenated_examples[key])
+            items['labels'].append(label_i)
+
+        # set first label to -100
+        # concatenated_examples['labels'][0] = -100
+        # print(f"concatenated_examples is {concatenated_examples}")
+
+        total_length = len(concatenated_examples[list(examples.keys())[0]])
+        # We drop the small remainder, we could add padding if the model supported it instead of this drop, you can
+        # customize this part to your needs.
+        if total_length >= block_size:
+            total_length = (total_length // block_size) * block_size
+
+        # # Split by chunks of max_len.
+        result = {}
+        for k,v in items.items():
+            for i, t in enumerate(v):
+                if k not in result:
+                    result[k] = []
+                result[k].append(t[:block_size])
+
+        return result
+        # result = {
+        #     k: [t[i : i + block_size] for i in range(0, total_length, block_size)]
+        #     for k, t in concatenated_examples.items()
+        # }
+        # # result["labels"] = result["input_ids"].copy()
+        # logger.info(f"length of result: {len(result)}")
+        # return result
     with training_args.main_process_first(desc="dataset map tokenization and grouping"):
         lm_datasets = []
         path = Path(data_args.dataset_dir)
@@ -489,7 +537,7 @@ def main():
                     desc="Running tokenizer on dataset",
                 )
                 grouped_datasets = tokenized_dataset.map(
-                    group_texts,
+                    extend_group_texts,
                     batched=True,
                     num_proc=data_args.preprocessing_num_workers,
                     load_from_cache_file=True,
@@ -497,6 +545,7 @@ def main():
                     cache_file_names = {k: os.path.join(cache_dir, 'grouped.arrow') for k in tokenized_dataset},
                     desc=f"Grouping texts in chunks of {block_size}",
                 )
+                logger.info(f"grouped_datasets = {grouped_datasets}")
                 processed_dataset = grouped_datasets
                 processed_dataset.save_to_disk(cache_path)
             if idx == 0:
