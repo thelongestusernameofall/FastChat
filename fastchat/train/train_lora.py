@@ -214,6 +214,9 @@ def train():
         model.enable_input_require_grads()
 
     data_module = make_supervised_data_module(tokenizer=tokenizer, data_args=data_args)
+    # debug print(data_module['train_dataset'][0])
+    print(f"data_module['train_dataset'][0] = {data_module['train_dataset'][0]}")
+
     trainer = Trainer(
         model=model, tokenizer=tokenizer, args=training_args, **data_module
     )
