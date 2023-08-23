@@ -457,7 +457,7 @@ def main():
             for k, t in concatenated_examples.items()
         }
         result["labels"] = result["input_ids"].copy()
-        print(f"length of result: {len(result)}")
+        logger.info(f"length of result: {len(result)}")
         return result
     with training_args.main_process_first(desc="dataset map tokenization and grouping"):
         lm_datasets = []
@@ -520,6 +520,7 @@ def main():
         logger.info(f"Num train_samples  {len(train_dataset)}")
         logger.info("Training example:")
         logger.info(tokenizer.decode(train_dataset[0]['input_ids']))
+        logger.info(f"train_dataset[0]\n:{train_dataset[0]}")
     if training_args.do_eval:
         eval_dataset = lm_datasets["test"]
         if data_args.max_eval_samples is not None:
