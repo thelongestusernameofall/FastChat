@@ -17,6 +17,7 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+import copy
 import json
 from dataclasses import dataclass, field
 import logging
@@ -107,7 +108,8 @@ class PretrainDataset(Dataset):
             for k, t in concatenated_examples.items()
         }
         # 很明显<s>token和正文的第一个token不需要预测。
-        result["labels"] = result["input_ids"].copy()
+        # labels should be deepcopy of input_ids
+        result["labels"] = copy.deepcopy(result["input_ids"])
         for i in range(len(result["labels"])):
             result["labels"][i][:2] = [-100] * 2
         print(f"length of result: {len(result)}")
