@@ -82,11 +82,12 @@ class PretrainDataset(Dataset):
 
     def _tokenize_function(self, examples):
         # output = self.tokenizer(examples["text"])
+        self.tokenizer.add_eos_token = True
         output = self.tokenizer(
             examples["text"],
             return_tensors="pt",
-            # padding="max_length",
-            # max_length=self.tokenizer.model_max_length,
+            padding="max_length",
+            max_length=self.tokenizer.model_max_length,
             truncation=True,
         )
         return output
@@ -192,11 +193,10 @@ class PretrainDataset(Dataset):
                 print(f"grouped_datasets is {grouped_datasets}")
                 processed_dataset = grouped_datasets
                 processed_dataset.save_to_disk(cache_path)
-                if idx == 0:
-                    lm_datasets = processed_dataset['train']
-                else:
-                    lm_datasets = concatenate_datasets([lm_datasets, processed_dataset['train']])
-
+            if idx == 0:
+                lm_datasets = processed_dataset['train']
+            else:
+                lm_datasets = concatenate_datasets([lm_datasets, processed_dataset['train']])
         return lm_datasets
 
     def __len__(self):

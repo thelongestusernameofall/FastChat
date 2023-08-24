@@ -7,7 +7,7 @@ target_name=../zh-pt02-pt
 data_path=../pretrain-data
 epochs=3
 batch_size=1
-max_length=1024
+max_length=256
 
 # Check for the --overwrite flag
 if [[ "$1" == "--overwrite" ]]; then
