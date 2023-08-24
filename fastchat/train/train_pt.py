@@ -37,9 +37,7 @@ import datasets
 from datasets import load_dataset, concatenate_datasets
 
 from fastchat.train.train import (
-    DataArguments,
     ModelArguments,
-    make_supervised_data_module,
 )
 
 from fastchat.train.llama_flash_attn_monkey_patch import (
@@ -227,6 +225,24 @@ def adapt_model_to_tokenizer(model, tokenizer):
         model.resize_token_embeddings(tokenizer_vocab_size)
     return model, tokenizer
 
+@dataclass
+class DataArguments:
+    data_path: str = field(
+        default=None, metadata={"help": "Path to the training data."}
+    )
+    data_cache_dir: str = field(
+        default=None, metadata={"help": "Path to the cache dir."}
+    )
+    worker_num: int = field(
+        default=8, metadata={"help": "parallel worker number to process pretrain corpus *.txt ."}
+    )
+    eval_data_path: str = field(
+        default=None, metadata={"help": "Path to the evaluation data."}
+    )
+    lazy_preprocess: bool = False
+    conv_name: str = field(
+        default="vicuna", metadata={"help": "Conversation template name."}
+    )
 
 @dataclass
 class TrainingArguments(transformers.TrainingArguments):
