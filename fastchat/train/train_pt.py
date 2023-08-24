@@ -85,8 +85,8 @@ class PretrainDataset(Dataset):
         output = self.tokenizer(
             examples["text"],
             return_tensors="pt",
-            # padding="max_length",
-            # max_length=self.tokenizer.model_max_length,
+            padding="max_length",
+            max_length=self.tokenizer.model_max_length,
             truncation=True,
         )
         return output
