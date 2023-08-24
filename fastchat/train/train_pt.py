@@ -87,9 +87,10 @@ class PretrainDataset(Dataset):
             examples["text"],
             return_tensors="pt",
             padding="max_length",
-            max_length=self.tokenizer.model_max_length,
+            max_length=self.block_size,
             truncation=True,
         )
+        print(f"output is {output}")
         return output
 
     def _group_texts(self, examples):

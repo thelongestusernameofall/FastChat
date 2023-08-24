@@ -61,15 +61,15 @@ deepspeed fastchat/train/train_pt.py \
     --gradient_checkpointing True \
     --flash_attn False
 
-
-# merge lora
-python3 -m fastchat.model.apply_lora --base ${base_model} --target ${target_name} --lora ${lora_name}
-
-# print summary
-echo "data path: ${data_path}"
-echo "epochs: ${epochs}"
-echo "base model: ${base_model}"
-echo "lora model: ${lora_name}"
-echo "target model: ${target_name}"
-
+#
+## merge lora
+#python3 -m fastchat.model.apply_lora --base ${base_model} --target ${target_name} --lora ${lora_name}
+#
+## print summary
+#echo "data path: ${data_path}"
+#echo "epochs: ${epochs}"
+#echo "base model: ${base_model}"
+#echo "lora model: ${lora_name}"
+#echo "target model: ${target_name}"
+#
 
