@@ -81,7 +81,14 @@ class PretrainDataset(Dataset):
         self.data = self._process_data()
 
     def _tokenize_function(self, examples):
-        output = self.tokenizer(examples["text"])
+        # output = self.tokenizer(examples["text"])
+        output = self.tokenizer(
+            examples["text"],
+            return_tensors="pt",
+            # padding="max_length",
+            # max_length=self.tokenizer.model_max_length,
+            truncation=True,
+        )
         return output
 
     def _group_texts(self, examples):
@@ -426,8 +433,8 @@ def train():
     # data_module = make_supervised_data_module(tokenizer=tokenizer, data_args=data_args)
     data_module = make_pretrain_data_module(tokenizer=tokenizer, data_args=data_args)
     # debug print(data_module['train_dataset'][0])
-    print(f"text of data_module['train_dataset'][0] = {tokenizer.decode(data_module['train_dataset'][0]['input_ids'])}")
     print(f"data_module['train_dataset'][0] = {data_module['train_dataset'][0]}")
+    print(f"text of data_module['train_dataset'][0] = {tokenizer.decode(data_module['train_dataset'][0]['input_ids'])}")
 
     trainer = Trainer(
         model=model, tokenizer=tokenizer, args=training_args, **data_module
