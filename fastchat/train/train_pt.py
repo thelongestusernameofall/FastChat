@@ -45,40 +45,40 @@ from fastchat.train.llama_flash_attn_monkey_patch import (
 )
 
 
-def __init__(self,
-             tokenizer,
-             dataset_dir,
-             data_cache_dir,
-             worker_num=8,
-             block_size=1024,
-             debug_mode=False,
-             ):
-    super(PretrainDataset, self).__init__()
-
-    self.dataset_dir = dataset_dir
-    self.tokenizer = tokenizer
-    self.block_size = block_size
-    self.data_cache_dir = data_cache_dir
-    self.debug_mode = debug_mode
-    self.worker_num = worker_num
-
-    if self.block_size is None or self.block_size <= 0:
-        self.block_size = self.tokenizer.model_max_length
-        # Our input block size will be the max possible for the model
-        if self.block_size > 1024:
-            print(
-                f"The input block size is greater than 1024. Setting the max block size to {self.block_size}."
-            )
-            self.block_size = 1024
-    else:
-        if self.block_size > self.tokenizer.model_max_length:
-            print(
-                f"The input block size is greater than {self.tokenizer.model_max_length}. Using self.tokenizer.model_max_length as block size."
-            )
-            self.block_size = self.tokenizer.model_max_length
-
-    self.data = self._process_data()
 class PretrainDataset(Dataset):
+    def __init__(self,
+                 tokenizer,
+                 dataset_dir,
+                 data_cache_dir,
+                 worker_num=8,
+                 block_size=1024,
+                 debug_mode=False,
+                 ):
+        super(PretrainDataset, self).__init__()
+
+        self.dataset_dir = dataset_dir
+        self.tokenizer = tokenizer
+        self.block_size = block_size
+        self.data_cache_dir = data_cache_dir
+        self.debug_mode = debug_mode
+        self.worker_num = worker_num
+
+        if self.block_size is None or self.block_size <= 0:
+            self.block_size = self.tokenizer.model_max_length
+            # Our input block size will be the max possible for the model
+            if self.block_size > 1024:
+                print(
+                    f"The input block size is greater than 1024. Setting the max block size to {self.block_size}."
+                )
+                self.block_size = 1024
+        else:
+            if self.block_size > self.tokenizer.model_max_length:
+                print(
+                    f"The input block size is greater than {self.tokenizer.model_max_length}. Using self.tokenizer.model_max_length as block size."
+                )
+                self.block_size = self.tokenizer.model_max_length
+
+        self.data = self._process_data()
 
     def _tokenize_function(self, examples):
         output = self.tokenizer(examples["text"])
@@ -225,6 +225,7 @@ def adapt_model_to_tokenizer(model, tokenizer):
         model.resize_token_embeddings(tokenizer_vocab_size)
     return model, tokenizer
 
+
 @dataclass
 class DataArguments:
     data_path: str = field(
@@ -243,6 +244,7 @@ class DataArguments:
     conv_name: str = field(
         default="vicuna", metadata={"help": "Conversation template name."}
     )
+
 
 @dataclass
 class TrainingArguments(transformers.TrainingArguments):
