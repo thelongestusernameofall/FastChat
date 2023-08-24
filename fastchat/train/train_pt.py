@@ -110,9 +110,10 @@ class PretrainDataset(Dataset):
         # 很明显<s>token和正文的第一个token不需要预测。
         # labels should be deepcopy of input_ids
         result["labels"] = copy.deepcopy(result["input_ids"])
+        print(f"before result is {result}")
         for i in range(len(result["labels"])):
             result["labels"][i][:2] = [-100] * 2
-        print(f"length of result: {len(result)}")
+        print(f"after result is {result}")
         return result
 
     def _extend_group_texts(self, examples):
