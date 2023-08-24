@@ -35,6 +35,7 @@ deepspeed fastchat/train/train_pt.py \
     --lora_dropout 0.05 \
     --data_path ${data_path} \
     --data_cache_dir ../temp_data_cache_dir \
+    --block_size ${max_length} \
     --worker_num 80 \
     --output_dir ${lora_name} \
     --num_train_epochs ${epochs} \

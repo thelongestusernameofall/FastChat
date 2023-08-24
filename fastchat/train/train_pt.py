@@ -245,6 +245,9 @@ class DataArguments:
     worker_num: int = field(
         default=8, metadata={"help": "parallel worker number to process pretrain corpus *.txt ."}
     )
+    block_size: int = field(
+        default=1024, metadata={"help": "Block size of the input sequence."}
+    )
     eval_data_path: str = field(
         default=None, metadata={"help": "Path to the evaluation data."}
     )
@@ -333,6 +336,7 @@ def make_pretrain_data_module(
         dataset_dir=data_args.data_path,
         data_cache_dir=data_args.data_cache_dir,
         debug_mode=debug_mode,
+        block_size=data_args.block_size,
         # worker_num=data_args.worker_num,
     )
 
