@@ -8,6 +8,14 @@ data_path=../pretrain-data
 epochs=3
 batch_size=1
 max_length=256
+lora=True
+
+if [[ "$lora" == "True" ]]; then
+    echo "Using lora"
+else
+    echo "Not using lora"
+    lora_name=${target_name}
+fi
 
 # Check for the --overwrite flag
 if [[ "$1" == "--overwrite" ]]; then
@@ -57,20 +65,25 @@ deepspeed fastchat/train/train_pt.py \
     --tf32 True \
     --model_max_length ${max_length} \
     --q_lora False \
-    --lora False \
+    --lora ${lora} \
     --deepspeed deepspeed.json \
     --gradient_checkpointing True \
     --flash_attn False
 
-#
-## merge lora
-#python3 -m fastchat.model.apply_lora --base ${base_model} --target ${target_name} --lora ${lora_name}
-#
-## print summary
-#echo "data path: ${data_path}"
-#echo "epochs: ${epochs}"
-#echo "base model: ${base_model}"
-#echo "lora model: ${lora_name}"
-#echo "target model: ${target_name}"
-#
+
+if [[ "$lora" == "True" ]]; then
+    echo "Using lora"
+    # merge lora
+    python3 -m fastchat.model.apply_lora --base ${base_model} --target ${target_name} --lora ${lora_name}
+fi
+
+# print summary
+echo "data path: ${data_path}"
+echo "epochs: ${epochs}"
+echo "base model: ${base_model}"
+if [[ "$lora" == "True" ]]; then
+    echo "lora model: ${lora_name}"
+fi
+echo "target model: ${target_name}"
+
 
