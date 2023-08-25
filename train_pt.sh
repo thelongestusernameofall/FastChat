@@ -76,9 +76,12 @@ deepspeed fastchat/train/train_pt.py \
 
 
 if [[ "$lora" == "True" ]]; then
-    echo "Using lora"
+    echo "Using lora, merging lora"
     # merge lora
     python3 -m fastchat.model.apply_lora --base ${base_model} --target ${target_name} --lora ${lora_name}
+else
+    echo "Not using lora, copy tokenizer to ${target_name}"
+    cp -r ${base_model}/*token* ${target_name}/
 fi
 
 # print summary
