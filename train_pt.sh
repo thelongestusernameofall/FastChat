@@ -7,10 +7,11 @@ target_name=../zh-pt04-pt
 data_path=../pretrain-data
 epochs=6
 batch_size=1
-max_length=256
-lora=True
-#lora_target_modules="['q_proj', 'v_proj', 'k_proj', 'o_proj', 'gate_proj', 'down_proj', 'up_proj']"
-lora_target_modules="['q_proj', 'v_proj']"
+max_length=512
+lora=False
+flash_attn=False
+#lora_target_modules="q_proj, v_proj, k_proj, o_proj, gate_proj, down_proj, up_proj"
+lora_target_modules='q_proj, v_proj, k_proj, o_proj'
 
 if [[ "$lora" == "True" ]]; then
     echo "Using lora"
@@ -71,7 +72,7 @@ deepspeed fastchat/train/train_pt.py \
     --lora ${lora} \
     --deepspeed deepspeed.json \
     --gradient_checkpointing True \
-    --flash_attn False
+    --flash_attn ${flash_attn}
 
 
 if [[ "$lora" == "True" ]]; then
