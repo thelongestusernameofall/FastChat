@@ -122,11 +122,11 @@ class Conversation:
             return ret
         elif self.sep_style == SeparatorStyle.LLAMA2:
             seps = [self.sep, self.sep2]
-            ret = ""
+            ret = system_prompt
             for i, (role, message) in enumerate(self.messages):
                 if message:
                     if i == 0:
-                        ret += system_prompt + message + " "
+                        ret += message + " "
                     else:
                         ret += role + " " + message + seps[i % 2]
                 else:
@@ -228,8 +228,7 @@ class Conversation:
 
     def to_openai_api_messages(self):
         """Convert the conversation to OpenAI chat completion format."""
-        system_prompt = self.system_template.format(system_message=self.system_message)
-        ret = [{"role": "system", "content": system_prompt}]
+        ret = [{"role": "system", "content": self.system_message}]
 
         for i, (_, msg) in enumerate(self.messages[self.offset :]):
             if i % 2 == 0:
@@ -559,6 +558,19 @@ Assistant: Hi, I'm Buddy, your AI assistant. How can I help you today?""",
 register_conv_template(
     Conversation(
         name="phoenix",
+        system_message="A chat between a curious human and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the human's questions.\n\n",
+        roles=("Human", "Assistant"),
+        messages=(),
+        offset=0,
+        sep_style=SeparatorStyle.PHOENIX,
+        sep="</s>",
+    )
+)
+
+# ReaLM default template
+register_conv_template(
+    Conversation(
+        name="ReaLM-7b-v1",
         system_message="A chat between a curious human and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the human's questions.\n\n",
         roles=("Human", "Assistant"),
         messages=(),
@@ -955,7 +967,7 @@ register_conv_template(
 register_conv_template(
     Conversation(
         name="llama2-chinese",
-        system_message="<s>{system_message}</s>",
+        system_template="<s>{system_message}</s>",
         roles=("Human", "Assistant", "System"),
         messages=(),
         offset=0,
