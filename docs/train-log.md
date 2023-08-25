@@ -22,14 +22,12 @@ LORA parameter: 'q_proj,', 'v_proj,', 'k_proj,', 'o_proj,', 'gate_proj,', 'down_
 batch_size = 1, epochs = 30, 1546s, loss: 3.5
 ```
 
-
-
 4.  zh06-pt - Full
 
 batch_size = 1, 400条数据,
 
 ```
-    epochs = 3, 480s, loss: 0.3    
+    epochs = 3, 480s, loss: 0.3 - 0.4 续写效果不好    
     epochs = 4, 660s, loss: 0.1     
     epochs = 6, 978s, loss: 0.08    
 ```
