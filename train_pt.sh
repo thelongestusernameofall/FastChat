@@ -9,6 +9,8 @@ epochs=3
 batch_size=1
 max_length=256
 lora=True
+#lora_target_modules="['q_proj', 'v_proj', 'k_proj', 'o_proj', 'gate_proj', 'down_proj', 'up_proj']"
+lora_target_modules="['q_proj', 'v_proj']"
 
 if [[ "$lora" == "True" ]]; then
     echo "Using lora"
@@ -41,6 +43,7 @@ deepspeed fastchat/train/train_pt.py \
     --lora_r 8 \
     --lora_alpha 16 \
     --lora_dropout 0.05 \
+    --lora_target_modules ${lora_target_modules} \
     --data_path ${data_path} \
     --data_cache_dir ../temp_data_cache_dir \
     --block_size ${max_length} \
