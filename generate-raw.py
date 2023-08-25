@@ -10,7 +10,7 @@ assert (
 from transformers import LlamaTokenizer, LlamaForCausalLM, GenerationConfig
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig
 
-BASE_MODEL = "../pt01"
+BASE_MODEL = "../zh-pt03-lora"
 
 tokenizer = LlamaTokenizer.from_pretrained(BASE_MODEL)
 

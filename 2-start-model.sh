@@ -1,9 +1,14 @@
 #!/bin/bash
 
+unset http_proxy
+unset https_proxy
 #model=../llama-2/LLaMA-2-7B-32K
 model=../llama-2-zh/chinese-alpaca-2-13b
 model=../llama-2-zh/chinese-alpaca-2-13b-sft817-v3
 model=../vicuna-13b-pt01
+model=../llama-2-zh/chinese-alpaca-2-13b
+model=../zh-pt03-lora
+model=../llama-2-zh/chinese-alpaca-2-13b
 
 #export CUDA_VISIBLE_DEVICES=0,1
 export CUDA_VISIBLE_DEVICES=1

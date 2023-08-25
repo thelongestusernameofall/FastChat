@@ -8,15 +8,17 @@ lora_dropout=0.05
 
 #pretrained_model=../llama-2/Llama-2-13b-hf/
 #chinese_tokenizer_path=../llama-2/Llama-2-13b-hf/
-pretrained_model=../llama-2-zh/chinese-alpaca-2-13b
-chinese_tokenizer_path=../llama-2-zh/chinese-alpaca-2-13b
+#pretrained_model=../llama-2-zh/chinese-alpaca-2-13b
+#chinese_tokenizer_path=../llama-2-zh/chinese-alpaca-2-13b
+pretrained_model=../zh-pt01
+chinese_tokenizer_path=../zh-pt01
 dataset_dir=../pretrain-data
 data_cache=../temp_data_cache_dir
 per_device_train_batch_size=1
 per_device_eval_batch_size=1
 gradient_accumulation_steps=1
 output_dir=../pretrain-output/
-epochs=1000
+epochs=1
 block_size=512
 
 deepspeed_config_file=chinese-llama-train/ds_zero2_no_offload.json

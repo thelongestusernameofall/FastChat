@@ -2,10 +2,10 @@
 # train pretrain and merge
 
 base_model=../llama-2-zh/chinese-alpaca-2-13b
-lora_name=../zh-pt02-lora
-target_name=../zh-pt02-pt
+lora_name=../zh-pt04-lora
+target_name=../zh-pt04-pt
 data_path=../pretrain-data
-epochs=3
+epochs=6
 batch_size=1
 max_length=256
 lora=True

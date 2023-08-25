@@ -1,15 +1,19 @@
 #!/bin/bash
 # train lora and merge
 
-base_model=../llama-2-zh/chinese-alpaca-2-13b-sft817-v3
-lora_name=../llama-2-zh/chinese-alpaca-2-13b-sft817-v4-lora
-sft_name=../llama-2-zh/chinese-alpaca-2-13b-sft817-v4
-data_path=../new-0817-clean.json
-epochs=3
+#base_model=../llama-2-zh/chinese-alpaca-2-13b-sft817-v3
+#lora_name=../llama-2-zh/chinese-alpaca-2-13b-sft817-v4-lora
+#sft_name=../llama-2-zh/chinese-alpaca-2-13b-sft817-v4
+#data_path=../new-0817-clean.json
+base_model=../zh-pt01
+lora_name=../zh-pt01-lora
+sft_name=../zh-pt01-sft
+data_path=../train-data/sft-localbrain-v2.json
+epochs=2
 batch_size=1
 conv_name="vicuna"
 #conv_name="llama-2"
-max_length=1024
+max_length=512
 
 # Check for the --overwrite flag
 if [[ "$1" == "--overwrite" ]]; then
