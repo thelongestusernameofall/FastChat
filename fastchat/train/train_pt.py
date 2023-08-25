@@ -409,6 +409,8 @@ def train():
         bias=lora_args.lora_bias,
         task_type="CAUSAL_LM",
     )
+    if training_args.local_rank == 0:
+        print(f"lora_config is ----- \n{lora_config}")
 
     if lora_args.q_lora:
         model = prepare_model_for_kbit_training(
