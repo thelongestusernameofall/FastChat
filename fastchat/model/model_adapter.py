@@ -114,6 +114,7 @@ class BaseModelAdapter:
         )
 
     def get_default_conv_template(self, model_path: str) -> Conversation:
+        print(f"get default conv template for {model_path}")
         return get_conv_template("one_shot")
 
 
