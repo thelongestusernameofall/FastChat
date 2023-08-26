@@ -1271,7 +1271,7 @@ class Llama2Adapter(BaseModelAdapter):
     """The model adapter for llama-2"""
 
     def match(self, model_path: str):
-        llama2_models = ["llama-2", "icesword-2", "icesword-002","text-davinci-002"]
+        llama2_models = ["llama-2", "icesword-2", "icesword-002", "text-davinci-002", "codellama"]
         # return "llama-2" in model_path.lower()
         return any([m in model_path.lower() for m in llama2_models])
 
