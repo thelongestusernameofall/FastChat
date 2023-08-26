@@ -46,6 +46,7 @@ deepspeed fastchat/train/train_pt.py \
     --lora_dropout 0.05 \
     --lora_target_modules ${lora_target_modules} \
     --data_path ${data_path} \
+    --file_type "json" \
     --data_cache_dir ../temp_data_cache_dir \
     --block_size ${max_length} \
     --worker_num 80 \

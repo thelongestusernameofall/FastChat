@@ -54,6 +54,7 @@ class PretrainDataset(Dataset):
                  worker_num=8,
                  block_size=1024,
                  debug_mode=False,
+                 file_type='text'
                  ):
         super(PretrainDataset, self).__init__()
 
@@ -63,6 +64,7 @@ class PretrainDataset(Dataset):
         self.data_cache_dir = data_cache_dir
         self.debug_mode = debug_mode
         self.worker_num = worker_num
+        self.file_type = file_type # text or json, jsonl
 
         if self.block_size is None or self.block_size <= 0:
             self.block_size = self.tokenizer.model_max_length
@@ -157,7 +159,9 @@ class PretrainDataset(Dataset):
         # (your main data processing code here)
         lm_datasets = []
         path = pathlib.Path(self.dataset_dir)
-        files = [file.name for file in path.glob("*.txt")]
+        ext = [".txt"] if self.file_type == 'text' else [".jsonl", ".json"]
+        # files = [file.name for file in path.glob("*.txt")]
+        files = [file.name for file in path.glob("*") if file.suffix in ext]
         if self.debug_mode is True:
             files = files[:1]
         for idx, file in enumerate(files):
@@ -172,7 +176,8 @@ class PretrainDataset(Dataset):
             except Exception:
                 cache_dir = os.path.join(self.data_cache_dir, filename + "_text")
                 os.makedirs(cache_dir, exist_ok=True)
-                raw_dataset = load_dataset("text", data_files=data_file, cache_dir=cache_dir, keep_in_memory=False)
+                self.file_type = 'text' if self.file_type == 'text' else 'json'
+                raw_dataset = load_dataset(self.file_type, data_files=data_file, cache_dir=cache_dir, keep_in_memory=False)
                 print(f"{file} has been loaded from disk")
 
                 tokenized_dataset = raw_dataset.map(
@@ -241,6 +246,9 @@ def adapt_model_to_tokenizer(model, tokenizer):
 class DataArguments:
     data_path: str = field(
         default=None, metadata={"help": "Path to the training data."}
+    )
+    file_type: str = field(
+        default='text', metadata={"help": "File type of the training data. (text/json)"}
     )
     data_cache_dir: str = field(
         default=None, metadata={"help": "Path to the cache dir."}
