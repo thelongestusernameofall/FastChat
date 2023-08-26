@@ -352,6 +352,7 @@ def make_pretrain_data_module(
         debug_mode=debug_mode,
         block_size=data_args.block_size,
         # worker_num=data_args.worker_num,
+        file_type=data_args.file_type
     )
 
     eval_dataset = None
