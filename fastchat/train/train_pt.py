@@ -182,12 +182,12 @@ class PretrainDataset(Dataset):
                 raw_dataset = load_dataset(self.file_type, data_files=data_file, cache_dir=cache_dir,
                                            keep_in_memory=False)
                 print(f"{file} has been loaded from disk")
-
+                remove_columns = 'text' if self.file_type == 'text' else 'Content'
                 tokenized_dataset = raw_dataset.map(
                     self._tokenize_function,
                     batched=True,
                     num_proc=self.worker_num,
-                    remove_columns="text",
+                    remove_columns=remove_columns,
                     load_from_cache_file=True,
                     keep_in_memory=False,
                     cache_file_names={k: os.path.join(cache_dir, 'tokenized.arrow') for k in raw_dataset},
