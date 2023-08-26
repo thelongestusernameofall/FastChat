@@ -38,12 +38,12 @@ def is_chinese_text(line, threshold=0.5):
     return chinese_ratio > threshold
 
 
-def process_file(filepath, output_file, min_len, max_len, only_zh=False):
+def process_file(filepath, output_file, min_len, max_len, only_zh=False, no_messy=False):
     with open(filepath, 'r', encoding='utf-8') as file:
         for line in file:
             data = json.loads(line)
             content = data.get('Content', '')
-            if is_garbled_text(content):
+            if no_messy and is_garbled_text(content):
                 continue
 
             if only_zh and not is_chinese_text(content):
@@ -58,7 +58,7 @@ def process_file(filepath, output_file, min_len, max_len, only_zh=False):
                 output_file.write(json.dumps(data, ensure_ascii=False) + '\n')
 
 
-def extract_and_save_content(directory, output_filename, min_len, max_len, suffix, threads, only_zh):
+def extract_and_save_content(directory, output_filename, min_len, max_len, suffix, threads, only_zh, no_messy=False):
     suffix_list = ['.jsonl', '.txt', '.json']
     if suffix:
         suffix_list = suffix.split(',')
@@ -80,8 +80,9 @@ def extract_and_save_content(directory, output_filename, min_len, max_len, suffi
     with tqdm(total=len(jsonl_files), desc="Processing files") as pbar:
         with open(output_filename, 'w', encoding='utf-8') as output_file:
             with ThreadPoolExecutor(max_workers=max_workers) as executor:
-                for _ in executor.map(lambda filepath: process_file(filepath, output_file, min_len, max_len, only_zh),
-                                      jsonl_files):
+                for _ in executor.map(
+                        lambda filepath: process_file(filepath, output_file, min_len, max_len, only_zh, no_messy),
+                        jsonl_files):
                     pbar.update(1)
 
 
@@ -95,6 +96,7 @@ if __name__ == "__main__":
     parser.add_argument('--min-len', type=int, default=256, help='Min length of content to keep', required=False)
     parser.add_argument('--max-len', type=int, default=1024, help='Max length of content to keep', required=False)
     parser.add_argument('--only-zh', action='store_true', help='Only process Chinese content', required=False)
+    parser.add_argument("--no-messy", action="store_true", help="Don't process messy content", required=False)
 
     args = None
     try:
@@ -104,4 +106,4 @@ if __name__ == "__main__":
         exit(1)
 
     extract_and_save_content(args.input, args.output, args.min_len, args.max_len, args.suffix, args.threads,
-                             args.only_zh)
+                             args.only_zh, args.no_messy)
