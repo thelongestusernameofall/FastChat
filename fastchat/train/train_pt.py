@@ -84,8 +84,11 @@ class PretrainDataset(Dataset):
     def _tokenize_function(self, examples):
         # output = self.tokenizer(examples["text"])
         self.tokenizer.add_eos_token = True
+        samples = examples["text"] if "text" in examples else examples["Content"] if "Content" in examples else None
+        if samples is None:
+            raise ValueError("No text field in examples")
         output = self.tokenizer(
-            examples["text"],
+            samples,
             return_tensors="pt",
             padding="max_length",
             max_length=self.block_size,
@@ -442,7 +445,8 @@ def train():
 
     if training_args.local_rank == 0:
         print(f"data_module['train_dataset'][0] = {data_module['train_dataset'][0]}")
-        print(f"text of data_module['train_dataset'][0] = {tokenizer.decode(data_module['train_dataset'][0]['input_ids'])}")
+        print(
+            f"text of data_module['train_dataset'][0] = {tokenizer.decode(data_module['train_dataset'][0]['input_ids'])}")
 
     trainer = Trainer(
         model=model, tokenizer=tokenizer, args=training_args, **data_module
