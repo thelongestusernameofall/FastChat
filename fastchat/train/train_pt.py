@@ -393,7 +393,7 @@ def train():
     if not os.path.exists(data_args.data_path):
         raise ValueError(f"Training data path {data_args.data_path} does not exist.")
 
-    path = pathlib.Path(training_args.data_path)
+    path = pathlib.Path(data_args.data_path)
     ext = [".txt"] if data_args.file_type == 'text' else [".jsonl", ".json"]
     files = [file.name for e in ext for file in path.glob(e)]
     if len(files) == 0:
