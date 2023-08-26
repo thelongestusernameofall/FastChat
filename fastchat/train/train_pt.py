@@ -64,7 +64,7 @@ class PretrainDataset(Dataset):
         self.data_cache_dir = data_cache_dir
         self.debug_mode = debug_mode
         self.worker_num = worker_num
-        self.file_type = file_type # text or json, jsonl
+        self.file_type = file_type  # text or json, jsonl
 
         if self.block_size is None or self.block_size <= 0:
             self.block_size = self.tokenizer.model_max_length
@@ -161,7 +161,9 @@ class PretrainDataset(Dataset):
         path = pathlib.Path(self.dataset_dir)
         ext = [".txt"] if self.file_type == 'text' else [".jsonl", ".json"]
         # files = [file.name for file in path.glob("*.txt")]
-        files = [file.name for file in path.glob("*") if file.suffix in ext]
+        files = [file.name for e in ext for file in path.glob(e)]
+        if len(files) == 0:
+            raise ValueError(f"No files found in the dataset directory {os.path.abspath(self.dataset_dir)}")
         if self.debug_mode is True:
             files = files[:1]
         for idx, file in enumerate(files):
@@ -177,7 +179,8 @@ class PretrainDataset(Dataset):
                 cache_dir = os.path.join(self.data_cache_dir, filename + "_text")
                 os.makedirs(cache_dir, exist_ok=True)
                 self.file_type = 'text' if self.file_type == 'text' else 'json'
-                raw_dataset = load_dataset(self.file_type, data_files=data_file, cache_dir=cache_dir, keep_in_memory=False)
+                raw_dataset = load_dataset(self.file_type, data_files=data_file, cache_dir=cache_dir,
+                                           keep_in_memory=False)
                 print(f"{file} has been loaded from disk")
 
                 tokenized_dataset = raw_dataset.map(
@@ -385,6 +388,16 @@ def train():
         if training_args.fp16
         else (torch.bfloat16 if training_args.bf16 else torch.float32)
     )
+
+    # 加载模型之前，先检查训练样本是否存在
+    if not os.path.exists(data_args.data_path):
+        raise ValueError(f"Training data path {data_args.data_path} does not exist.")
+
+    path = pathlib.Path(training_args.data_path)
+    ext = [".txt"] if data_args.file_type == 'text' else [".jsonl", ".json"]
+    files = [file.name for e in ext for file in path.glob(e)]
+    if len(files) == 0:
+        raise ValueError(f"No files found in the dataset directory {os.path.abspath(data_args.data_path)}")
 
     tokenizer = transformers.AutoTokenizer.from_pretrained(
         model_args.model_name_or_path,
