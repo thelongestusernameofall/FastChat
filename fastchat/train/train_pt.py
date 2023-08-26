@@ -161,7 +161,7 @@ class PretrainDataset(Dataset):
         path = pathlib.Path(self.dataset_dir)
         ext = [".txt"] if self.file_type == 'text' else [".jsonl", ".json"]
         # files = [file.name for file in path.glob("*.txt")]
-        files = [file.name for e in ext for file in path.glob(e)]
+        files = [file.name for file in path.glob("*") if file.suffix in ext]
         if len(files) == 0:
             raise ValueError(f"No files found in the dataset directory {os.path.abspath(self.dataset_dir)}")
         if self.debug_mode is True:
@@ -393,9 +393,9 @@ def train():
     if not os.path.exists(data_args.data_path):
         raise ValueError(f"Training data path {data_args.data_path} does not exist.")
 
-    path = pathlib.Path(data_args.data_path)
+    path = pathlib.Path(os.path.abspath(data_args.data_path))
     ext = [".txt"] if data_args.file_type == 'text' else [".jsonl", ".json"]
-    files = [file.name for e in ext for file in path.glob(e)]
+    files = [file.name for file in path.glob("*") if file.suffix in ext]
     if len(files) == 0:
         raise ValueError(f"No files found in the dataset directory {os.path.abspath(data_args.data_path)}")
 
