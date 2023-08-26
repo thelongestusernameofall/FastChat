@@ -158,7 +158,7 @@ class PretrainDataset(Dataset):
 
         # (your main data processing code here)
         lm_datasets = []
-        path = pathlib.Path(self.dataset_dir)
+        path = pathlib.Path(os.path.abspath(self.dataset_dir))
         ext = [".txt"] if self.file_type == 'text' else [".jsonl", ".json"]
         # files = [file.name for file in path.glob("*.txt")]
         files = [file.name for file in path.glob("*") if file.suffix in ext]
