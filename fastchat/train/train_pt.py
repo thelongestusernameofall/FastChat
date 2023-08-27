@@ -45,6 +45,9 @@ from fastchat.train.llama_flash_attn_monkey_patch import (
     replace_llama_attn_with_flash_attn,
 )
 
+from transformers import TrainerCallback
+from deepspeed import get_accelerator
+
 
 class PretrainDataset(Dataset):
     def __init__(self,
@@ -360,6 +363,36 @@ def make_pretrain_data_module(
     return dict(train_dataset=train_dataset, eval_dataset=eval_dataset)
 
 
+# <方案一> 未使用
+class SimonTrainer(Trainer):
+    """
+    我的Trainer类，继承自transformers.Trainer。
+    重写Trainer的training_step方法，每次训练完一个batch后，清空GPU缓存。
+    原因是：在A100 8*80GB的机器上，预训练过程中,若block-size设为1024，则会出现GPU显存不足的情况。
+    错误报警如下：
+    [2023-08-27 12:37:19,763] [WARNING] [stage3.py:1885:step] 2 pytorch allocator cache flushes since last step. this happens when there is high memory pressure and is detrimental to performance. if this is
+happening frequently consider adjusting settings to reduce memory consumption. If you are unable to make the cache flushes go away consider adding get_accelerator().empty_cache() calls in your training l
+oop to ensure that all ranks flush their caches at the same time
+    """
+
+    def training_step(self, model, inputs):
+        # Call the original training_step
+        loss = super().training_step(model, inputs)
+        # Empty GPU cache
+        torch.cuda.empty_cache()
+        return loss
+
+
+# <方案二> 使用中
+
+
+class ClearCacheCallback(TrainerCallback):
+    def on_step_end(self, args, state, control, **kwargs):
+        accelerator = get_accelerator()
+        if accelerator is not None:
+            accelerator.empty_cache()
+
+
 def train():
     parser = transformers.HfArgumentParser(
         (ModelArguments, DataArguments, TrainingArguments, LoraArguments)
@@ -471,7 +504,7 @@ def train():
             f"text of data_module['train_dataset'][0] = {tokenizer.decode(data_module['train_dataset'][0]['input_ids'])}")
 
     trainer = Trainer(
-        model=model, tokenizer=tokenizer, args=training_args, **data_module
+        model=model, tokenizer=tokenizer, args=training_args, **data_module, callbacks=[ClearCacheCallback]
     )
 
     model.config.use_cache = False
