@@ -4,8 +4,9 @@
 export OPENAI_API_BASE="https://ai.360.cn/api/v1"
 export OPENAI_API_KEY="fk1007450431.xPaaYZE9yV93CugliD6CurdDzuaWRP7geed60c0f"
 
-host="10.178.11.72"
-port=8000
+#host="10.178.11.72"
+host="10.163.166.72"
+port=80
 
 unset http_proxy https_proxy
 # 3.2 启动gradio_web_server并添加--add-chatgpt参数
