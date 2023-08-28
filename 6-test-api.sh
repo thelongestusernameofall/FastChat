@@ -3,6 +3,8 @@
 #host=10.178.11.72
 #port=8001
 
+unset http_proxy https_proxy
+
 host=10.163.166.72
 port=81
 model='text-davinci-002'
