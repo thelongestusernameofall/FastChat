@@ -8,4 +8,4 @@ host="10.178.11.72"
 port=8000
 
 # 3.2 启动gradio_web_server并添加--add-chatgpt参数
-nohup python3 -m fastchat.serve.gradio_web_server --concurrency-count 30 --host ${host} --port ${port} --controller-url http://127.0.0.1:21001 --add-chatgpt --model-list-mode reload  > ./logs/gradio_web_server.log 2>&1 &
+nohup python3 -m fastchat.serve.gradio_web_server --concurrency-count 30 --host ${host} --port ${port} --controller-url http://127.0.0.1:21001 --add-chatgpt --model-list-mode reload --gradio-auth-path user-auth.txt > ./logs/gradio_web_server.log 2>&1 &
