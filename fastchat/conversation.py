@@ -286,10 +286,10 @@ register_conv_template(
     Conversation(
         name="one_shot",
         system_message="",
-        roles=("", ""),
+        roles=("USER", "ASSISTANT"),
         messages=(),
         offset=0,
-        sep_style=SeparatorStyle.NO_COLON_SINGLE,
+        sep_style=SeparatorStyle.ADD_COLON_TWO,
         sep=" ",
         sep2="</s>",
     )
