@@ -14,3 +14,14 @@ curl http://${host}:${port}/v1/chat/completions \
           \"model\": \"${model}\",
           \"messages\": [{\"role\": \"user\", \"content\": \"Hello! What is your name?\"}]
 }"
+
+
+curl http://127.0.0.1:81/v1/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $OPENAI_API_KEY" \
+  -d '{
+    "model": "text-davinci-003",
+    "prompt": "USER: Say this is a test. ASSISTANT:",
+    "max_tokens": 4096,
+    "temperature": 0.7
+  }'
