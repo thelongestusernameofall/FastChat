@@ -5,9 +5,9 @@
 
 unset http_proxy https_proxy
 
-host=10.163.166.72
+host="127.0.0.1"
 port=81
-model='text-davinci-002'
+model='text-davinci-003'
 curl http://${host}:${port}/v1/chat/completions \
           -H "Content-Type: application/json" \
           -d "{

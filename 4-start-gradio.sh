@@ -6,6 +6,7 @@ export OPENAI_API_KEY="fk1007450431.xPaaYZE9yV93CugliD6CurdDzuaWRP7geed60c0f"
 
 #host="10.178.11.72"
 host="10.163.166.72"
+host="0.0.0.0"
 port=80
 
 unset http_proxy https_proxy
