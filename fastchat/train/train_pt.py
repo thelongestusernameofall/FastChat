@@ -285,6 +285,7 @@ class TrainingArguments(transformers.TrainingArguments):
         },
     )
     flash_attn: bool = False
+    clear_cache: bool = False
 
 
 @dataclass
@@ -504,7 +505,8 @@ def train():
             f"text of data_module['train_dataset'][0] = {tokenizer.decode(data_module['train_dataset'][0]['input_ids'])}")
 
     trainer = Trainer(
-        model=model, tokenizer=tokenizer, args=training_args, **data_module, callbacks=[ClearCacheCallback]
+        model=model, tokenizer=tokenizer, args=training_args, **data_module,
+        callbacks=[ClearCacheCallback] if training_args.clear_cache else None
     )
 
     model.config.use_cache = False

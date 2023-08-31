@@ -9,7 +9,7 @@ epochs=6
 batch_size=1
 max_length=512
 lora=False
-flash_attn=False
+clear_cache=False
 #lora_target_modules="q_proj, v_proj, k_proj, o_proj, gate_proj, down_proj, up_proj"
 lora_target_modules='q_proj, v_proj, k_proj, o_proj'
 
@@ -83,7 +83,8 @@ deepspeed fastchat/train/train_pt.py \
     --lora ${lora} \
     --deepspeed deepspeed.json \
     --gradient_checkpointing True \
-    --flash_attn ${flash_attn}
+    --flash_attn False \
+    --clear_cache ${clear_cache}
 
 
 if [[ "$lora" == "True" ]]; then
