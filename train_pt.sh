@@ -21,12 +21,21 @@ else
 fi
 
 # Check for the --overwrite flag
-if [[ "$1" == "--overwrite" ]]; then
+# 如果参数中包含 --overwrite
+if [[ "$@" =~ "--overwrite" ]]; then
     if [ -d "${lora_name}" ] || [ -f "${lora_name}" ]; then
         rm -rf "${lora_name}"
     fi
     if [ -d "${target_name}" ] || [ -f "${target_name}" ]; then
         rm -rf "${target_name}"
+    fi
+# 如果参数中包含 --resume
+elif [[ "$@" =~ "--resume" ]]; then
+    if [ -d "${lora_name}" ] || [ -f "${lora_name}" ]; then
+        echo "目录或文件 ${lora_name} 已经存在"
+    fi
+    if [ -d "${target_name}" ] || [ -f "${target_name}" ]; then
+        echo "目录或文件 ${target_name} 已经存在"
     fi
 else
     if [ -d "${lora_name}" ] || [ -f "${lora_name}" ]; then
@@ -38,6 +47,7 @@ else
         exit 1
     fi
 fi
+
 
 deepspeed fastchat/train/train_pt.py \
     --model_name_or_path ${base_model}  \
