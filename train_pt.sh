@@ -32,18 +32,18 @@ if [[ "$@" =~ "--overwrite" ]]; then
 # 如果参数中包含 --resume
 elif [[ "$@" =~ "--resume" ]]; then
     if [ -d "${lora_name}" ] || [ -f "${lora_name}" ]; then
-        echo "目录或文件 ${lora_name} 已经存在"
+        echo "目录或文件 ${lora_name} 已经存在, 将检测checkpoint并恢复训练"
     fi
     if [ -d "${target_name}" ] || [ -f "${target_name}" ]; then
-        echo "目录或文件 ${target_name} 已经存在"
+        echo "目录或文件 ${target_name} 已经存在， 将检测checkpoint并恢复训练"
     fi
 else
     if [ -d "${lora_name}" ] || [ -f "${lora_name}" ]; then
-        echo "目录或文件 ${lora_name} 已经存在"
+        echo "目录或文件 ${lora_name} 已经存在，请删除或使用--overwrite/--resume参数"
         exit 1
     fi
     if [ -d "${target_name}" ] || [ -f "${target_name}" ]; then
-        echo "目录或文件 ${target_name} 已经存在"
+        echo "目录或文件 ${target_name} 已经存在，请删除或使用--overwrite/--resume参数"
         exit 1
     fi
 fi
