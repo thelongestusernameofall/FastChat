@@ -10,5 +10,7 @@ port=81
 ## ray master
 ray start --head
 ## ray slave
-# ray start --address=<ray-head-address> --gpu-memory-utilization 0.85
+# ray start --address=<ray-head-address>
+#
+# --gpu-memory-utilization 0.85
 python -m vllm.entrypoints.openai.api_server --model  $model_path --served-model-name $model_name --tensor-parallel-size $all_gpu_num --host $host --port $port
