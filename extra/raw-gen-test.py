@@ -1,6 +1,7 @@
 import requests
 import argparse
 
+
 def send_request(query):
     # 请求的URL
     url = "http://10.178.11.72:7860/run/predict"
@@ -32,12 +33,12 @@ def send_request(query):
 
     # 打印响应
     print(response.status_code)  # 响应状态码
-    print(response.text)         # 响应内容
+    print(response.text)  # 响应内容
 
+    result = "ERROR"
     if response.status_code == 200:
-        print("Request was successful!")
-    else:
-        print("Request failed!")
+        result = response.json()["data"][0]
+    print(result)
 
 
 if __name__ == "__main__":
