@@ -9,7 +9,7 @@ epochs=6
 batch_size=1
 max_length=512
 lora=False
-flash_attn=False
+clear_cache=False
 #lora_target_modules="q_proj, v_proj, k_proj, o_proj, gate_proj, down_proj, up_proj"
 lora_target_modules='q_proj, v_proj, k_proj, o_proj'
 
@@ -32,18 +32,18 @@ if [[ "$@" =~ "--overwrite" ]]; then
 # 如果参数中包含 --resume
 elif [[ "$@" =~ "--resume" ]]; then
     if [ -d "${lora_name}" ] || [ -f "${lora_name}" ]; then
-        echo "目录或文件 ${lora_name} 已经存在"
+        echo "目录或文件 ${lora_name} 已经存在, 将检测checkpoint并恢复训练"
     fi
     if [ -d "${target_name}" ] || [ -f "${target_name}" ]; then
-        echo "目录或文件 ${target_name} 已经存在"
+        echo "目录或文件 ${target_name} 已经存在， 将检测checkpoint并恢复训练"
     fi
 else
     if [ -d "${lora_name}" ] || [ -f "${lora_name}" ]; then
-        echo "目录或文件 ${lora_name} 已经存在"
+        echo "目录或文件 ${lora_name} 已经存在，请删除或使用--overwrite/--resume参数"
         exit 1
     fi
     if [ -d "${target_name}" ] || [ -f "${target_name}" ]; then
-        echo "目录或文件 ${target_name} 已经存在"
+        echo "目录或文件 ${target_name} 已经存在，请删除或使用--overwrite/--resume参数"
         exit 1
     fi
 fi
@@ -83,7 +83,8 @@ deepspeed fastchat/train/train_pt.py \
     --lora ${lora} \
     --deepspeed deepspeed.json \
     --gradient_checkpointing True \
-    --flash_attn ${flash_attn}
+    --flash_attn False \
+    --clear_cache ${clear_cache}
 
 
 if [[ "$lora" == "True" ]]; then
