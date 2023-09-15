@@ -11,7 +11,13 @@ from torch import Tensor
 from torch.nn import functional as F
 import torch.nn as nn
 from tqdm import tqdm
-from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, AutoModel
+from transformers import (
+    AutoConfig,
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    AutoModel,
+    AutoModelForSeq2SeqLM,
+)
 
 
 @dataclasses.dataclass
@@ -123,7 +129,13 @@ def load_compress_model(model_path, device, torch_dtype, use_fast, revision="mai
         # some models are loaded by AutoModel but not AutoModelForCausalLM,
         # such as chatglm, chatglm2
         try:
-            model = AutoModelForCausalLM.from_config(config, trust_remote_code=True)
+            # google/flan-* models are based on an AutoModelForSeq2SeqLM.
+            if "T5Config" in str(type(config)):
+                model = AutoModelForSeq2SeqLM.from_config(
+                    config, trust_remote_code=True
+                )
+            else:
+                model = AutoModelForCausalLM.from_config(config, trust_remote_code=True)
         except NameError:
             model = AutoModel.from_config(config, trust_remote_code=True)
         linear_weights = get_compressed_list(model)
@@ -167,12 +179,14 @@ def load_compress_model(model_path, device, torch_dtype, use_fast, revision="mai
         tmp_state_dict = torch.load(filename, map_location=lambda storage, loc: storage)
         for name in tmp_state_dict:
             if name in linear_weights:
-                tensor = tmp_state_dict[name].to(device).data.to(torch_dtype)
+                tensor = tmp_state_dict[name].to(device, dtype=torch_dtype)
                 compressed_state_dict[name] = compress(
                     tensor, default_compression_config
                 )
             else:
-                compressed_state_dict[name] = tmp_state_dict[name].to(device)
+                compressed_state_dict[name] = tmp_state_dict[name].to(
+                    device, dtype=torch_dtype
+                )
             tmp_state_dict[name] = None
             tensor = None
             gc.collect()

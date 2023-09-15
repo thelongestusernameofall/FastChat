@@ -498,6 +498,18 @@ block_css = """
 footer {
     display:none !important
 }
+.image-container {
+    display: flex;
+    align-items: center;
+    padding: 1px;
+}
+.image-container img {
+    margin: 0 30px;
+    height: 20px;
+    max-height: 100%;
+    width: auto;
+    max-width: 20%;
+}
 """
 
 
@@ -570,12 +582,12 @@ def build_single_model_ui(models, add_promotion_links=False):
         with gr.Column(scale=20):
             textbox = gr.Textbox(
                 show_label=False,
-                placeholder="Enter text and press ENTER",
+                placeholder="Enter your prompt here and press ENTER",
                 visible=False,
                 container=False,
             )
         with gr.Column(scale=1, min_width=50):
-            send_btn = gr.Button(value="Send", visible=False)
+            send_btn = gr.Button(value="Send", visible=False, variant="primary")
 
     with gr.Row(visible=False) as button_row:
         upvote_btn = gr.Button(value="👍  Upvote", interactive=False)
