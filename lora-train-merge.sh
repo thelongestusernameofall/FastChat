@@ -15,6 +15,9 @@ conv_name="vicuna"
 #conv_name="llama-2"
 max_length=512
 
+#lora_target_modules="q_proj, v_proj, k_proj, o_proj, gate_proj, down_proj, up_proj"
+lora_target_modules='q_proj, v_proj, k_proj, o_proj'
+
 # Check for the --overwrite flag
 if [[ "$1" == "--overwrite" ]]; then
     if [ -d "${lora_name}" ] || [ -f "${lora_name}" ]; then
@@ -39,6 +42,7 @@ deepspeed fastchat/train/train_lora.py \
     --lora_r 8 \
     --lora_alpha 16 \
     --lora_dropout 0.05 \
+    --lora_target_modules ${lora_target_modules} \
     --data_path ${data_path} \
     --output_dir ${lora_name} \
     --num_train_epochs ${epochs} \
