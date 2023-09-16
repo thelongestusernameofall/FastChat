@@ -1,12 +1,15 @@
 #!/bin/bash
 # train pretrain and merge
 
-base_model=../llama-2-zh/chinese-alpaca-2-13b
-lora_name=../zh-pt04-lora
-target_name=../zh-pt04-pt
-data_path=../pretrain-data
-epochs=6
-batch_size=1
+#export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+#base_model=../llama-2-zh/chinese-alpaca-2-13b
+
+base_model=../zh-pt829-pt
+lora_name=../zh-pt830
+target_name=../zh-pt830
+data_path=../data-using
+epochs=2
+batch_size=2
 max_length=512
 lora=False
 clear_cache=False
@@ -59,7 +62,7 @@ deepspeed fastchat/train/train_pt.py \
     --file_type "json" \
     --data_cache_dir ../temp_data_cache_dir \
     --block_size ${max_length} \
-    --worker_num 80 \
+    --worker_num 200 \
     --output_dir ${lora_name} \
     --num_train_epochs ${epochs} \
     --fp16 True \

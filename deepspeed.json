@@ -5,6 +5,7 @@
     "contiguous_gradients": false
   },
   "train_micro_batch_size_per_gpu": "auto",
+  "train_batch_size":"auto",
   "bf16": {
     "enabled": "auto"
   }

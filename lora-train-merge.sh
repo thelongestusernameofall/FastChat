@@ -1,23 +1,27 @@
 #!/bin/bash
 # train lora and merge
 
-#base_model=../llama-2-zh/chinese-alpaca-2-13b-sft817-v3
-#lora_name=../llama-2-zh/chinese-alpaca-2-13b-sft817-v4-lora
-#sft_name=../llama-2-zh/chinese-alpaca-2-13b-sft817-v4
-#data_path=../new-0817-clean.json
-base_model=../zh-pt01
-lora_name=../zh-pt01-lora
-sft_name=../zh-pt01-sft
-data_path=../train-data/sft-localbrain-v2.json
-epochs=2
-batch_size=1
-conv_name="vicuna"
-#conv_name="llama-2"
-max_length=512
+#base_model=../llama-2-zh/chinese-alpaca-2-13b-sft831
+base_model=../codellama/CodeLlama-13b-Instruct-hf
+lora_name=../codellama/CodeLlama-13b-Instruct-hf-sft915-lora
+sft_name=../codellama/CodeLlama-13b-Instruct-hf-sft915
+data_path=../data-sft/name.json
+epochs=10
+batch_size=24
+#conv_name="vicuna_v1.1"
+conv_name="llama-2"
+max_length=1024
 
 #lora_target_modules="q_proj, v_proj, k_proj, o_proj, gate_proj, down_proj, up_proj"
 lora_target_modules='q_proj, v_proj, k_proj, o_proj'
 
+deepspeedconf=deepspeed.json
+deepspeedconf=playground/deepspeed_config_s2.json
+
+lr=2e-5
+lr=2e-4
+
+unset http_proxy && unset https_proxy
 # Check for the --overwrite flag
 if [[ "$1" == "--overwrite" ]]; then
     if [ -d "${lora_name}" ] || [ -f "${lora_name}" ]; then
@@ -55,7 +59,7 @@ deepspeed fastchat/train/train_lora.py \
     --save_strategy "steps" \
     --save_steps 2000 \
     --save_total_limit 2 \
-    --learning_rate 2e-5 \
+    --learning_rate ${lr} \
     --weight_decay 0. \
     --warmup_ratio 0.03 \
     --lr_scheduler_type "cosine" \
@@ -64,7 +68,7 @@ deepspeed fastchat/train/train_lora.py \
     --tf32 True \
     --model_max_length ${max_length} \
     --q_lora False \
-    --deepspeed deepspeed.json \
+    --deepspeed ${deepspeedconf} \
     --gradient_checkpointing True \
     --flash_attn False \
     --conv_name ${conv_name}
