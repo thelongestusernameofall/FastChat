@@ -16,7 +16,10 @@ max_length=1024
 lora_target_modules='q_proj, v_proj, k_proj, o_proj'
 
 deepspeedconf=deepspeed.json
-deepspeedconf=playground/deepspeed_config_s2.json
+# copied from playground/deepspeed_config_s3.json,but comment out offload_cpu 
+deepspeedconf=deepspeed_s3.json
+# following z3 ok
+#deepspeedconf=playground/deepspeed_config_s3.json
 
 lr=2e-5
 lr=2e-4

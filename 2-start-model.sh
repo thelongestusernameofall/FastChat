@@ -4,11 +4,12 @@ unset http_proxy https_proxy
 
 #running
 model=../zh-pt830-sft
-model=../llama-2-zh/chinese-alpaca-2-13b
+model=../codellama/CodeLlama-13b-Instruct-hf
 
 export CUDA_VISIBLE_DEVICES=7
 
 name='text-davinci-003'
+name='codellama-13b'
 gpu_num=1
 
 echo "runing ${model} with name ${name}"

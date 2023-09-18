@@ -2,7 +2,7 @@
 
 export CUDA_VISIBLE_DEVICES=0
 
-model_path=../codellama/CodeLlama-13b-Instruct-hf-sft915
+model_path=../codellama/CodeLlama-13b-Instruct-hf
 model_name=text-davinci-003
 all_gpu_num=1
 host='0.0.0.0'
