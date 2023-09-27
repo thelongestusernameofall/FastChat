@@ -1,10 +1,9 @@
 #!/bin/bash
 
-export CUDA_VISIBLE_DEVICES=0
-
-model_path=../codellama/CodeLlama-13b-Instruct-hf
+export CUDA_VISIBLE_DEVICES=0,1,2,3
+model_path=../llama-2-zh/chinese-alpaca-2-13b-sft923-v5
 model_name=text-davinci-003
-all_gpu_num=1
+all_gpu_num=4
 host='0.0.0.0'
 port=81
 
