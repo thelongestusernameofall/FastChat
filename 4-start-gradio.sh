@@ -5,6 +5,14 @@ export OPENAI_API_KEY="fk1007450431.l5UjXztYHaGsJ8LQAMjow8L8TbkMtrU469e66468"
 host="0.0.0.0"
 port=88
 
+# 获取进程号
+pid=$(pgrep -f "python3 -m fastchat.serve.gradio_web_server")
+
+# 如果进程存在，则杀死它
+if [[ ! -z "$pid" ]]; then
+    kill -9 "$pid"
+fi
+
 unset http_proxy https_proxy
 # 3.2 启动gradio_web_server并添加--add-chatgpt参数
 # 下面添加用户登录，测试失败
