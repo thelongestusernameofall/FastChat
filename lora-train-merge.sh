@@ -15,13 +15,9 @@ max_length=1536
 #lora_target_modules="q_proj, v_proj, k_proj, o_proj, gate_proj, down_proj, up_proj"
 lora_target_modules='q_proj, v_proj, up_proj, down_proj'
 
-deepspeedconf=deepspeed.json
-# copied from playground/deepspeed_config_s3.json,but comment out offload_cpu 
 deepspeedconf=deepspeed_s3.json
-# following z3 ok
-#deepspeedconf=playground/deepspeed_config_s3.json
 
-lr=2e-5
+#lr=2e-5
 lr=7e-4
 
 unset http_proxy && unset https_proxy
