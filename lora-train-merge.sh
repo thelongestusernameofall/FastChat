@@ -1,19 +1,19 @@
 #!/bin/bash
 # train lora and merge
 
-#base_model=../llama-2-zh/chinese-alpaca-2-13b-sft831
-base_model=../codellama/CodeLlama-13b-Instruct-hf
-lora_name=../codellama/CodeLlama-13b-Instruct-hf-sft915-lora
-sft_name=../codellama/CodeLlama-13b-Instruct-hf-sft915
-data_path=../data-sft/name.json
-epochs=10
+base_model=../llama-2-zh/chinese-alpaca-2-13b-sft1029-v2
+base_model=../llama-2-zh/chinese-alpaca-2-1.3b
+lora_name=../llama-2-zh/chinese-alpaca-2-1.3b-sft1102-v1-t1-lora
+sft_name=../llama-2-zh/chinese-alpaca-2-1.3b-sft1102-v1-t1
+data_path=../data-sft/all-1029-sample.json
+epochs=3
 batch_size=24
-#conv_name="vicuna_v1.1"
-conv_name="llama-2"
-max_length=1024
+conv_name="vicuna_v1.1"
+#conv_name="llama-2"
+max_length=1536
 
 #lora_target_modules="q_proj, v_proj, k_proj, o_proj, gate_proj, down_proj, up_proj"
-lora_target_modules='q_proj, v_proj, k_proj, o_proj'
+lora_target_modules='q_proj, v_proj, up_proj, down_proj'
 
 deepspeedconf=deepspeed.json
 # copied from playground/deepspeed_config_s3.json,but comment out offload_cpu 
@@ -22,7 +22,7 @@ deepspeedconf=deepspeed_s3.json
 #deepspeedconf=playground/deepspeed_config_s3.json
 
 lr=2e-5
-lr=2e-4
+lr=7e-4
 
 unset http_proxy && unset https_proxy
 # Check for the --overwrite flag
@@ -46,8 +46,8 @@ fi
 
 deepspeed fastchat/train/train_lora.py \
     --model_name_or_path ${base_model}  \
-    --lora_r 8 \
-    --lora_alpha 16 \
+    --lora_r 16 \
+    --lora_alpha 32 \
     --lora_dropout 0.05 \
     --lora_target_modules ${lora_target_modules} \
     --data_path ${data_path} \
@@ -74,6 +74,7 @@ deepspeed fastchat/train/train_lora.py \
     --deepspeed ${deepspeedconf} \
     --gradient_checkpointing True \
     --flash_attn False \
+    --lazy_preprocess True \
     --conv_name ${conv_name}
 
 

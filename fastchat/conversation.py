@@ -280,9 +280,13 @@ def register_conv_template(template: Conversation, override: bool = False):
     conv_templates[template.name] = template
 
 
+conv_template_print:bool = False
 def get_conv_template(name: str) -> Conversation:
     """Get a conversation template."""
-    print(f"Loading conv_template '{name}'...")
+    global conv_template_print
+    if not conv_template_print:
+        conv_template_print = True
+        print(f"Loading conv_template '{name}'...")
     return conv_templates[name].copy()
 
 register_conv_template(
