@@ -28,7 +28,7 @@ from fastchat.constants import (
     SESSION_EXPIRATION_TIME,
 )
 from fastchat.model.model_adapter import get_conversation_template
-from fastchat.model.model_registry import model_info
+from fastchat.model.model_registry import get_model_info, model_info
 from fastchat.serve.api_provider import (
     anthropic_api_stream_iter,
     openai_api_stream_iter,
@@ -39,6 +39,7 @@ from fastchat.utils import (
     build_logger,
     violates_moderation,
     get_window_url_params_js,
+    get_window_url_params_with_tos_js,
     parse_gradio_auth_creds,
 )
 
@@ -48,8 +49,9 @@ logger = build_logger("gradio_web_server", "gradio_web_server.log")
 headers = {"User-Agent": "FastChat Client"}
 
 no_change_btn = gr.Button.update()
-enable_btn = gr.Button.update(interactive=True)
+enable_btn = gr.Button.update(interactive=True, visible=True)
 disable_btn = gr.Button.update(interactive=False)
+invisible_btn = gr.Button.update(interactive=False, visible=False)
 
 controller_url = None
 enable_moderation = False
@@ -156,15 +158,7 @@ def load_demo_single(models, url_params):
     )
 
     state = None
-    return (
-        state,
-        dropdown_update,
-        gr.Chatbot.update(visible=True),
-        gr.Textbox.update(visible=True),
-        gr.Button.update(visible=True),
-        gr.Row.update(visible=True),
-        gr.Accordion.update(visible=True),
-    )
+    return state, dropdown_update
 
 
 def load_demo(url_params, request: gr.Request):
@@ -405,7 +399,7 @@ def bot_response(state, temperature, top_p, max_new_tokens, request: gr.Request)
     try:
         for i, data in enumerate(stream_iter):
             if data["error_code"] == 0:
-                if i % 5 != 0:  # reduce gradio's overhead
+                if i % 8 != 0:  # reduce gradio's overhead
                     continue
                 output = data["text"].strip()
                 conv.update_last_message(output + "▌")
@@ -495,6 +489,8 @@ block_css = """
 #leaderboard_dataframe td {
     line-height: 0.1em;
 }
+#input_box textarea {
+}
 footer {
     display:none !important
 }
@@ -521,17 +517,11 @@ def get_model_description_md(models):
     ct = 0
     visited = set()
     for i, name in enumerate(models):
-        if name in model_info:
-            minfo = model_info[name]
-            if minfo.simple_name in visited:
-                continue
-            visited.add(minfo.simple_name)
-            one_model_md = f"[{minfo.simple_name}]({minfo.link}): {minfo.description}"
-        else:
-            visited.add(name)
-            one_model_md = (
-                f"[{name}](): Add the description at fastchat/model/model_registry.py"
-            )
+        minfo = get_model_info(name)
+        if minfo.simple_name in visited:
+            continue
+        visited.add(minfo.simple_name)
+        one_model_md = f"[{minfo.simple_name}]({minfo.link}): {minfo.description}"
 
         if ct % 3 == 0:
             model_description_md += "|"
@@ -545,9 +535,9 @@ def get_model_description_md(models):
 def build_single_model_ui(models, add_promotion_links=False):
     promotion = (
         """
+- | [GitHub](https://github.com/lm-sys/FastChat) | [Dataset](https://github.com/lm-sys/FastChat/blob/main/docs/dataset_release.md) | [Twitter](https://twitter.com/lmsysorg) | [Discord](https://discord.gg/HSWAKCrnFx) |
 - Introducing Llama 2: The Next Generation Open Source Large Language Model. [[Website]](https://ai.meta.com/llama/)
 - Vicuna: An Open-Source Chatbot Impressing GPT-4 with 90% ChatGPT Quality. [[Blog]](https://lmsys.org/blog/2023-03-30-vicuna/)
-- | [GitHub](https://github.com/lm-sys/FastChat) | [Twitter](https://twitter.com/lmsysorg) | [Discord](https://discord.gg/HSWAKCrnFx) |
 """
         if add_promotion_links
         else ""
@@ -575,7 +565,6 @@ def build_single_model_ui(models, add_promotion_links=False):
     chatbot = gr.Chatbot(
         elem_id="chatbot",
         label="Scroll down and start chatting",
-        visible=False,
         height=550,
     )
     with gr.Row():
@@ -583,20 +572,20 @@ def build_single_model_ui(models, add_promotion_links=False):
             textbox = gr.Textbox(
                 show_label=False,
                 placeholder="Enter your prompt here and press ENTER",
-                visible=False,
                 container=False,
+                elem_id="input_box",
             )
         with gr.Column(scale=1, min_width=50):
-            send_btn = gr.Button(value="Send", visible=False, variant="primary")
+            send_btn = gr.Button(value="Send", variant="primary")
 
-    with gr.Row(visible=False) as button_row:
+    with gr.Row() as button_row:
         upvote_btn = gr.Button(value="👍  Upvote", interactive=False)
         downvote_btn = gr.Button(value="👎  Downvote", interactive=False)
         flag_btn = gr.Button(value="⚠️  Flag", interactive=False)
         regenerate_btn = gr.Button(value="🔄  Regenerate", interactive=False)
         clear_btn = gr.Button(value="🗑️  Clear history", interactive=False)
 
-    with gr.Accordion("Parameters", open=False, visible=False) as parameter_row:
+    with gr.Accordion("Parameters", open=False) as parameter_row:
         temperature = gr.Slider(
             minimum=0.0,
             maximum=1.0,
@@ -659,14 +648,16 @@ def build_single_model_ui(models, add_promotion_links=False):
         [state, chatbot] + btn_list,
     )
     send_btn.click(
-        add_text, [state, model_selector, textbox], [state, chatbot, textbox] + btn_list
+        add_text,
+        [state, model_selector, textbox],
+        [state, chatbot, textbox] + btn_list,
     ).then(
         bot_response,
         [state, temperature, top_p, max_output_tokens],
         [state, chatbot] + btn_list,
     )
 
-    return state, model_selector, chatbot, textbox, send_btn, button_row, parameter_row
+    return [state, model_selector]
 
 
 def build_demo(models):
@@ -677,31 +668,24 @@ def build_demo(models):
     ) as demo:
         url_params = gr.JSON(visible=False)
 
-        (
-            state,
-            model_selector,
-            chatbot,
-            textbox,
-            send_btn,
-            button_row,
-            parameter_row,
-        ) = build_single_model_ui(models)
+        state, model_selector = build_single_model_ui(models)
 
         if args.model_list_mode not in ["once", "reload"]:
             raise ValueError(f"Unknown model list mode: {args.model_list_mode}")
+
+        if args.show_terms_of_use:
+            load_js = get_window_url_params_with_tos_js
+        else:
+            load_js = get_window_url_params_js
+
         demo.load(
             load_demo,
             [url_params],
             [
                 state,
                 model_selector,
-                chatbot,
-                textbox,
-                send_btn,
-                button_row,
-                parameter_row,
             ],
-            _js=get_window_url_params_js,
+            _js=load_js,
         )
 
     return demo
@@ -714,29 +698,36 @@ if __name__ == "__main__":
     parser.add_argument(
         "--share",
         action="store_true",
-        help="Whether to generate a public, shareable link.",
+        help="Whether to generate a public, shareable link",
     )
     parser.add_argument(
         "--controller-url",
         type=str,
         default="http://localhost:21001",
-        help="The address of the controller.",
+        help="The address of the controller",
     )
     parser.add_argument(
         "--concurrency-count",
         type=int,
         default=10,
-        help="The concurrency count of the gradio queue.",
+        help="The concurrency count of the gradio queue",
     )
     parser.add_argument(
         "--model-list-mode",
         type=str,
         default="once",
         choices=["once", "reload"],
-        help="Whether to load the model list once or reload the model list every time.",
+        help="Whether to load the model list once or reload the model list every time",
     )
     parser.add_argument(
-        "--moderate", action="store_true", help="Enable content moderation"
+        "--moderate",
+        action="store_true",
+        help="Enable content moderation to block unsafe inputs",
+    )
+    parser.add_argument(
+        "--show-terms-of-use",
+        action="store_true",
+        help="Shows term of use before loading the demo",
     )
     parser.add_argument(
         "--add-chatgpt",

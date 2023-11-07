@@ -17,7 +17,13 @@ def register_model_info(
         model_info[full_name] = info
 
 def get_model_info(name: str) -> ModelInfo:
-    return model_info[name]
+    if name in model_info:
+        return model_info[name]
+    else:
+        # To fix this, please use `register_model_info` to register your model
+        return ModelInfo(
+            name, "", "Register the description at fastchat/model/model_registry.py"
+        )
 
 register_model_info(
     ['text-davinci-003'], 'text-davinci-003', "https://www.iceswordlab.com", "LLM by Icesword"
@@ -79,7 +85,7 @@ register_model_info(
     ],
     "Vicuna",
     "https://lmsys.org/blog/2023-03-30-vicuna/",
-    "a chat assistant fine-tuned from LLaMA on user-shared conversations by LMSYS",
+    "a chat assistant fine-tuned on user-shared conversations by LMSYS",
 )
 register_model_info(
     ["wizardlm-70b", "wizardlm-30b", "wizardlm-13b"],
@@ -146,6 +152,12 @@ register_model_info(
     "OpenAssistant (oasst)",
     "https://open-assistant.io",
     "an Open Assistant for everyone by LAION",
+)
+register_model_info(
+    ["openchat_3.5"],
+    "OpenChat 3.5",
+    "https://github.com/imoneoi/openchat",
+    "OpenChat 3.5 is a versatile, open-source language model fine-tuned using C-RLFT",
 )
 register_model_info(
     ["llama-7b", "llama-13b"],
@@ -253,9 +265,16 @@ register_model_info(
     "A chatbot fine-tuned from RedPajama-INCITE-7B-Base by Together",
 )
 register_model_info(
-    ["falcon-7b", "falcon-7b-instruct", "falcon-40b", "falcon-40b-instruct"],
+    [
+        "falcon-7b",
+        "falcon-7b-instruct",
+        "falcon-40b",
+        "falcon-40b-instruct",
+        "falcon-180b",
+        "falcon-180b-chat",
+    ],
     "Falcon",
-    "https://huggingface.co/tiiuae/falcon-40b",
+    "https://huggingface.co/tiiuae/falcon-180B",
     "TII's flagship series of large language models",
 )
 register_model_info(
@@ -293,4 +312,61 @@ register_model_info(
     "Vigogne-Chat",
     "https://huggingface.co/bofenghuang/vigogne-2-7b-chat",
     "Vigogne-Chat is a French large language model (LLM) optimized for instruction-following and multi-turn dialogues, developed by Bofeng Huang",
+)
+register_model_info(
+    ["mistral-7b-instruct"],
+    "Mistral",
+    "https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.1",
+    "a large language model by Mistral AI team",
+)
+register_model_info(
+    ["deluxe-chat-v1"],
+    "DeluxeChat",
+    "",
+    "Deluxe Chat",
+)
+
+register_model_info(
+    ["zephyr-7b-alpha"],
+    "Zephyr",
+    "https://huggingface.co/HuggingFaceH4/zephyr-7b-alpha",
+    "a chatbot fine-tuned from Mistral by Hugging Face",
+)
+
+register_model_info(
+    [
+        "Xwin-LM-7B-V0.1",
+        "Xwin-LM-13B-V0.1",
+        "Xwin-LM-70B-V0.1",
+        "Xwin-LM-7B-V0.2",
+        "Xwin-LM-13B-V0.2",
+    ],
+    "Xwin-LM",
+    "https://github.com/Xwin-LM/Xwin-LM",
+    "Chat models developed by Xwin-LM team",
+)
+
+register_model_info(
+    ["lemur-70b-chat"],
+    "Lemur-Chat",
+    "https://huggingface.co/OpenLemur/lemur-70b-chat-v1",
+    "an openly accessible language model optimized for both natural language and coding capabilities ",
+)
+
+register_model_info(
+    ["Mistral-7B-OpenOrca"],
+    "Open-Orca",
+    "https://huggingface.co/Open-Orca/Mistral-7B-OpenOrca",
+    "A fine-tune of [Mistral 7B](https://huggingface.co/mistralai/Mistral-7B-v0.1) using [OpenOrca dataset](https://huggingface.co/datasets/Open-Orca/OpenOrca)",
+)
+
+register_model_info(
+    [
+        "AquilaChat-7B",
+        "AquilaChat2-7B",
+        "AquilaChat2-34B",
+    ],
+    "Aquila-Chat",
+    "https://huggingface.co/BAAI/AquilaChat2-34B",
+    "Chat models developed by BAAI team",
 )
