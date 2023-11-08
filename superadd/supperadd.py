@@ -30,10 +30,14 @@ def main():
     parser.add_argument("-m", "--model", type=str, required=True,
                         help="model name or path containing .pt/.pth files.")
     parser.add_argument("-o", "--output", type=str, required=True, help="output path")
-    parser.add_argument("-t", "--type", choices=["hf", "pth"], required=True,
+    parser.add_argument("-t", "--type", choices=["hf", "pth"], required=False, default="hf",
                         help="Specify model type: 'hf' for HuggingFace model, 'pth' for PyTorch .pt or .pth files.")
 
     args = parser.parse_args()
 
     # call extend_model
     extend_model(args.model, args.output, args.type)
+
+
+if __name__ == "__main__":
+    main()
