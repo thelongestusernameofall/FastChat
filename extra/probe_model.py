@@ -21,6 +21,7 @@ def print_state_dict_of_model(model):
 
 def load_and_print_hf_model(model_dir):
     model = AutoModel.from_pretrained(model_dir)
+    print(f"model: {model}")
     print_state_dict_of_model(model)
 
 
