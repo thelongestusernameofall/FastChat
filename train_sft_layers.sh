@@ -8,12 +8,14 @@ output_dir=../test-v2
 data_path=../data-sft/all-sharegpt-v3-no-imsorry.json
 
 epochs=3
-batch_size=8
-max_length=2048
-lr=2e-5
+batch_size=4
+max_length=4096
+
+#lr=2e-5
+lr=7e-4
 
 layers='all'
-layers="layers.3,layers.4"
+layers="layers.3 layers.4"
 
 # Check for --overwrite argument
 overwrite=false

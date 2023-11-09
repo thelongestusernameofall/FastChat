@@ -36,9 +36,6 @@ IGNORE_TOKEN_ID = LabelSmoother.ignore_index
 @dataclass
 class ModelArguments:
     model_name_or_path: Optional[str] = field(default="facebook/opt-125m")
-    layers: typing.List[str] = field(  # Layers to train, e.g. "0,1,2,3", all layers will be trained if not specified
-        default_factory=lambda: []
-    )
 
 
 @dataclass
@@ -64,6 +61,9 @@ class TrainingArguments(transformers.TrainingArguments):
         metadata={
             "help": "Maximum sequence length. Sequences will be right padded (and possibly truncated)."
         },
+    )
+    layers: typing.List[str] = field(  # Layers to train, e.g. "0,1,2,3", all layers will be trained if not specified
+        default_factory=lambda: []
     )
 
 
@@ -272,6 +272,36 @@ def make_supervised_data_module(
     return dict(train_dataset=train_dataset, eval_dataset=eval_dataset)
 
 
+# <方案一> 使用中
+class SimonTrainer(Trainer):
+    """
+    我的Trainer类，继承自transformers.Trainer。
+    重写Trainer的training_step方法，每步backward之前，设置model的所有参数的requires_grad为True，这样对所有参数进行梯度计算。
+    在backward之后，optimizer.step()之前，设置model的参数,除了指定的layer，其他参数的requires_grad为False，这样对指定的layer的参数进行梯度更新。
+    原因是：如果计算图中既包含了requires_grad=True的变量,也包含了requires_grad=False的变量，就会报错。
+    错误报警如下：
+     Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+RuntimeError: element 0 of tensors does not require grad and does not have a grad_fn
+    """
+
+    def training_step(self, model, inputs):
+        # set all parameters' requires_grad to True
+
+        if self.args.layers and self.args.layers != ["all"]:
+            for param in model.parameters():
+                param.requires_grad = True
+
+        # Call the original training_step
+        loss = super().training_step(model, inputs)
+
+        # set all parameters' requires_grad to False except the specified layers
+        if self.args.layers and self.args.layers != ["all"]:
+            for name, param in model.named_parameters():
+                if param.requires_grad and not any(layer_name in name for layer_name in self.args.layers):
+                    param.requires_grad = False
+        return loss
+
+
 def train():
     global local_rank
 
@@ -307,21 +337,12 @@ def train():
     )
     tokenizer.pad_token = tokenizer.unk_token
 
-    if model_args.layers and model_args.layers != ["all"]:
-        # Initially freeze all parameters
-        for param in model.parameters():
-            param.requires_grad = False
-
-        # Unfreeze the specified layers
-        for name, param in model.named_parameters():
-            if any(layer_name in name for layer_name in model_args.layers):
-                param.requires_grad = True
-
     # Load data
     data_module = make_supervised_data_module(tokenizer=tokenizer, data_args=data_args)
 
     # Start trainner
-    trainer = Trainer(
+    # trainer = Trainer(
+    trainer = SimonTrainer(
         model=model, tokenizer=tokenizer, args=training_args, **data_module
     )
     if list(pathlib.Path(training_args.output_dir).glob("checkpoint-*")):
