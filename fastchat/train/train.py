@@ -13,7 +13,7 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-
+import typing
 from dataclasses import dataclass, field
 import json
 import math
@@ -36,6 +36,9 @@ IGNORE_TOKEN_ID = LabelSmoother.ignore_index
 @dataclass
 class ModelArguments:
     model_name_or_path: Optional[str] = field(default="facebook/opt-125m")
+    layers: typing.List[str] = field(  # Layers to train, e.g. "0,1,2,3", all layers will be trained if not specified
+        default_factory=lambda: []
+    )
 
 
 @dataclass
@@ -78,15 +81,15 @@ def trainer_save_model_safe(trainer: transformers.Trainer):
 
     save_policy = FullStateDictConfig(offload_to_cpu=True, rank0_only=True)
     with FSDP.state_dict_type(
-        trainer.model, StateDictType.FULL_STATE_DICT, save_policy
+            trainer.model, StateDictType.FULL_STATE_DICT, save_policy
     ):
         trainer.save_model()
 
 
 def preprocess(
-    sources,
-    tokenizer: transformers.PreTrainedTokenizer,
-    conv_name: str = "vicuna"
+        sources,
+        tokenizer: transformers.PreTrainedTokenizer,
+        conv_name: str = "vicuna"
 ) -> Dict:
     conv = get_conversation_template(conv_name)
     roles = {"human": conv.roles[0], "gpt": conv.roles[1]}
@@ -139,43 +142,43 @@ def preprocess(
             # "-2" is hardcoded for the Llama tokenizer to make the offset correct.
             instruction_len = len(tokenizer(parts[0]).input_ids) - 2
 
-# <<<<<<< HEAD
-#             if conv.sep_style == SeparatorStyle.LLAMA2:
-#                 if i > 0:
-#                     cur_len += 1
-#                     instruction_len += 1
-#                 if i > 1:
-#                     cur_len += 1
-# =======
+            # <<<<<<< HEAD
+            #             if conv.sep_style == SeparatorStyle.LLAMA2:
+            #                 if i > 0:
+            #                     cur_len += 1
+            #                     instruction_len += 1
+            #                 if i > 1:
+            #                     cur_len += 1
+            # =======
             if i != 0 and not tokenizer.legacy:
                 # The legacy and non-legacy modes handle special tokens differently
                 instruction_len -= 1
-# >>>>>>> main
+            # >>>>>>> main
 
             # Ignore the user instructions
-            target[cur_len : cur_len + instruction_len] = IGNORE_TOKEN_ID
+            target[cur_len: cur_len + instruction_len] = IGNORE_TOKEN_ID
             cur_len += turn_len
 
-# <<<<<<< HEAD
-#         if conv.sep_style == SeparatorStyle.LLAMA2:
-#             cur_len += 2
-# =======
+            # <<<<<<< HEAD
+            #         if conv.sep_style == SeparatorStyle.LLAMA2:
+            #             cur_len += 2
+            # =======
             if i != 0 and not tokenizer.legacy:
                 # The legacy and non-legacy modes handle special tokens differently
                 cur_len -= 1
 
-# >>>>>>> main
+        # >>>>>>> main
         target[cur_len:] = IGNORE_TOKEN_ID
 
         if False:  # Inspect and check the correctness of masking
             z = target.clone()
             z = torch.where(z == IGNORE_TOKEN_ID, tokenizer.unk_token_id, z)
             rank0_print(tokenizer.decode(z))
-# <<<<<<< HEAD
-#             print('targets',tokenizer.decode(z))
-# =======
+            # <<<<<<< HEAD
+            #             print('targets',tokenizer.decode(z))
+            # =======
             exit()
-# >>>>>>> main
+        # >>>>>>> main
 
         if cur_len < tokenizer.model_max_length:
             if cur_len != total_len:
@@ -249,7 +252,7 @@ class LazySupervisedDataset(Dataset):
 
 
 def make_supervised_data_module(
-    tokenizer: transformers.PreTrainedTokenizer, data_args
+        tokenizer: transformers.PreTrainedTokenizer, data_args
 ) -> Dict:
     """Make dataset and collator for supervised fine-tuning."""
     dataset_cls = (
@@ -303,6 +306,16 @@ def train():
         use_fast=False,
     )
     tokenizer.pad_token = tokenizer.unk_token
+
+    if model_args.layers:
+        # Initially freeze all parameters
+        for param in model.parameters():
+            param.requires_grad = False
+
+        # Unfreeze the specified layers
+        for name, param in model.named_parameters():
+            if any(layer_name in name for layer_name in model_args.layers):
+                param.requires_grad = True
 
     # Load data
     data_module = make_supervised_data_module(tokenizer=tokenizer, data_args=data_args)
