@@ -14,6 +14,22 @@ lr=2e-5
 
 layers="layers.3,layers.4"
 
+# Check for --overwrite argument
+overwrite=false
+for arg in "$@"
+do
+    if [ "$arg" = "--overwrite" ]; then
+        overwrite=true
+        break
+    fi
+done
+
+# If output_dir exists and overwrite is false, exit the script
+if [ -d "$output_dir" ] && [ "$overwrite" = false ]; then
+    echo "Error: Output directory $output_dir already exists. Use --overwrite to overwrite."
+    exit 1
+fi
+
 # Choose the framework: deepspeed or torchrun
 framework=deepspeed # or torchrun
 
@@ -72,4 +88,4 @@ else
     exit 1
 fi
 
-echo "Done, generated model is in \n${output_dir}"
+echo "Done, generated model is in ${output_dir}"
