@@ -19,12 +19,19 @@ def print_state_dict_of_model(model):
         print(f"{key}: {value.shape}")
 
 
+def print_named_parameters_of_model(model):
+    for name, param in model.named_parameters():
+        print(f"{name}: {param.shape}")
+
+
 def load_and_print_hf_model(model_dir):
     model = AutoModel.from_pretrained(model_dir)
     print("=================[model_struct]========================")
     print(f"model: {model}")
     print("=================[state_dict]========================")
     print_state_dict_of_model(model)
+    print("=================[named_parameters]========================")
+    print_named_parameters_of_model(model)
 
 
 def load_and_print_pt_model(model_path):
