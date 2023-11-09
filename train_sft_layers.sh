@@ -12,6 +12,7 @@ batch_size=8
 max_length=2048
 lr=2e-5
 
+layers='all'
 layers="layers.3,layers.4"
 
 # Check for --overwrite argument
@@ -58,7 +59,8 @@ if [ "$framework" = "torchrun" ]; then
         --fsdp_transformer_layer_cls_to_wrap 'LlamaDecoderLayer' \
         --model_max_length ${max_length} \
         --gradient_checkpointing True \
-        --lazy_preprocess True
+        --lazy_preprocess True \
+        --layers ${layers}
 elif [ "$framework" = "deepspeed" ]; then
     # Run training with deepspeed
     deepspeed fastchat/train/train.py \
@@ -82,7 +84,8 @@ elif [ "$framework" = "deepspeed" ]; then
         --logging_steps 1 \
         --model_max_length ${max_length} \
         --gradient_checkpointing True \
-        --lazy_preprocess True
+        --lazy_preprocess True \
+        --layers ${layers}
 else
     echo "Error: Unknown framework specified"
     exit 1

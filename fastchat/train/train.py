@@ -307,7 +307,7 @@ def train():
     )
     tokenizer.pad_token = tokenizer.unk_token
 
-    if model_args.layers:
+    if model_args.layers and model_args.layers != ["all"]:
         # Initially freeze all parameters
         for param in model.parameters():
             param.requires_grad = False
