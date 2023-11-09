@@ -50,8 +50,8 @@ if [ "$framework" = "torchrun" ]; then
         --gradient_accumulation_steps 1 \
         --evaluation_strategy "no" \
         --save_strategy "steps" \
-        --save_steps 1200 \
-        --save_total_limit 10 \
+        --save_steps 12000 \
+        --save_total_limit 1 \
         --learning_rate ${lr} \
         --weight_decay 0. \
         --warmup_ratio 0.03 \
@@ -77,8 +77,8 @@ elif [ "$framework" = "deepspeed" ]; then
         --gradient_accumulation_steps 1 \
         --evaluation_strategy "no" \
         --save_strategy "steps" \
-        --save_steps 1200 \
-        --save_total_limit 10 \
+        --save_steps 12000 \
+        --save_total_limit 1 \
         --learning_rate ${lr} \
         --weight_decay 0. \
         --warmup_ratio 0.03 \
