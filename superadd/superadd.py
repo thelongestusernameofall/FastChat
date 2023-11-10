@@ -72,7 +72,7 @@ def extend_model(model_path: str, output_path: str, model_type: str, add_layer: 
 
 
 def main():
-    parser = argparse.ArgumentParser(description="supperadd: extend model layers")
+    parser = argparse.ArgumentParser(description="superadd: extend model layers")
     parser.add_argument("-m", "--model", type=str, required=True,
                         help="model name or path containing .pt/.pth files.")
     parser.add_argument("-o", "--output", type=str, required=True, help="output path")
