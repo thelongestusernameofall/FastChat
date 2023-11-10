@@ -24,7 +24,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 import transformers
-from transformers import Trainer
+from transformers import Trainer, deepspeed
 from transformers.trainer_pt_utils import LabelSmoother
 
 from fastchat.conversation import SeparatorStyle
@@ -272,7 +272,33 @@ def make_supervised_data_module(
     return dict(train_dataset=train_dataset, eval_dataset=eval_dataset)
 
 
-# <方案一> 使用中
+# <方案一> 探索中
+class SimonTrainer_fast(Trainer):
+    """
+    我的Trainer类，继承自transformers.Trainer。
+    在__init__方法中，将optimizer的参数设置为requires_grad=True的参数。
+    之后设置optimizer,只传递requires_grad=True的参数。
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.args.layers and self.args.layers != ["all"]:
+            for name, param in self.model.named_parameters():
+                if any(layer_name in name for layer_name in self.args.layers):
+                    param.requires_grad = True
+                else:
+                    param.requires_grad = False
+
+    def create_optimizer(self):
+        # 仅将requires_grad=True的参数传递给优化器
+        # optimizer = super().create_optimizer()
+        optimizer = transformers.AdamW(filter(lambda p: p.requires_grad, self.model.parameters()),
+                                       lr=self.args.learning_rate)
+        return optimizer
+
+
+# <方案二> 使用中(可行但低效)
 class SimonTrainer(Trainer):
     """
     我的Trainer类，继承自transformers.Trainer。
@@ -353,7 +379,13 @@ def train():
     # Save model
     model.config.use_cache = True
     trainer.save_state()
-    trainer_save_model_safe(trainer)
+    if deepspeed.is_deepspeed_zero3_enabled():
+        state_dict_zero3 = trainer.model_wrapped._zero3_consolidated_16bit_state_dict()
+        if training_args.local_rank == 0:
+            state_dict = state_dict_zero3
+            model.save_pretrained(training_args.output_dir, state_dict=state_dict)
+    else:
+        trainer_save_model_safe(trainer)
 
 
 if __name__ == "__main__":
