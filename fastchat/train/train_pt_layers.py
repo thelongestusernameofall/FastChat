@@ -288,7 +288,8 @@ class TrainingArguments(transformers.TrainingArguments):
     )
     flash_attn: bool = False
     clear_cache: bool = False
-    layers: typing.List[str] = field(  # Layers to train, e.g. "layers.3 layers.4", all layers will be trained if not specified
+    layers: typing.List[str] = field(
+        # Layers to train, e.g. "layers.3 layers.4", all layers will be trained if not specified
         default_factory=lambda: []
     )
 
@@ -370,7 +371,7 @@ def make_pretrain_data_module(
 
 
 # <方案一> 未使用
-class SimonTrainer(Trainer):
+class SimonTrainer_v1(Trainer):
     """
     我的Trainer类，继承自transformers.Trainer。
     重写Trainer的training_step方法，每次训练完一个batch后，清空GPU缓存。
@@ -537,7 +538,7 @@ def train():
         print(
             f"text of data_module['train_dataset'][0] = {tokenizer.decode(data_module['train_dataset'][0]['input_ids'])}")
 
-    trainer = Trainer(
+    trainer = SimonTrainer(
         model=model, tokenizer=tokenizer, args=training_args, **data_module,
         callbacks=[ClearCacheCallback] if training_args.clear_cache else None
     )
