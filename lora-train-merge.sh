@@ -1,24 +1,31 @@
 #!/bin/bash
 # train lora and merge
 
-base_model=../llama-2-zh/chinese-alpaca-2-13b-sft1029-v2
+base_model=../llama-2-zh/chinese-alpaca-2-7b
 base_model=../llama-2-zh/chinese-alpaca-2-1.3b
-lora_name=../llama-2-zh/chinese-alpaca-2-1.3b-sft1102-v1-t1-lora
-sft_name=../llama-2-zh/chinese-alpaca-2-1.3b-sft1102-v1-t1
-data_path=../data-sft/all-1029-sample.json
-epochs=3
-batch_size=24
+base_model=../llama-2-zh/chinese-alpaca-2-13b-sft1102-v6-t6
+base_model=../llama-2-zh/chinese-alpaca-2-13b-inf1029-v5-t5
+lora_name=../llama-2-zh/chinese-alpaca-2-13b-inf1029-v6-t6-lora
+sft_name=../llama-2-zh/chinese-alpaca-2-13b-inf1029-v6-t6
+
+base_model=../test
+lora_name=../test-v1-lora
+sft_name=../test-v1
+data_path=../all-sharegpt-v3-no-imsorry-len4000.json
+epochs=5
+batch_size=3
 conv_name="vicuna_v1.1"
 #conv_name="llama-2"
-max_length=1536
+max_length=4090
 
 #lora_target_modules="q_proj, v_proj, k_proj, o_proj, gate_proj, down_proj, up_proj"
-lora_target_modules='q_proj, v_proj, up_proj, down_proj'
+#lora_target_modules='q_proj, v_proj, up_proj, down_proj'
+lora_target_modules='layers.4.self_attn.q_proj, layers.4.self_attn.k_proj, layers.4.self_attn.v_proj, layers.4.self_attn.o_proj, layers.4.mlp.gate_proj, layers.4.mlp.up_proj, layers.4.mlp.down_proj'
 
 deepspeedconf=deepspeed_s3.json
 
 #lr=2e-5
-lr=7e-4
+lr=9e-4
 
 unset http_proxy && unset https_proxy
 # Check for the --overwrite flag
