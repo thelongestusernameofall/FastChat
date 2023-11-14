@@ -102,9 +102,15 @@ def sample_and_shuffle(input_file, sample_count, output_file, len_limit=4090, n_
         sampled_data = parallel_map(sft_to_pretrain, sampled_data, n_jobs=n_jobs, desc="Converting to Pretrain Format")
         sampled_data = list(sampled_data)
 
-    # 保存到输出的JSON文件
-    with open(output_file, 'w', encoding='utf-8') as f:
-        json.dump(sampled_data, f, ensure_ascii=False, indent=4)
+        # save to output JSON file as jsonl
+        with open(output_file, 'w', encoding='utf-8') as f:
+            for sample in sampled_data:
+                json.dump(sample, f, ensure_ascii=False)
+                f.write("\n")
+    else:
+        # 保存到输出的JSON文件
+        with open(output_file, 'w', encoding='utf-8') as f:
+            json.dump(sampled_data, f, ensure_ascii=False, indent=4)
 
 
 if __name__ == '__main__':
