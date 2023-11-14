@@ -65,7 +65,7 @@ def sft_to_pretrain(sample, file_name: str = "sft-conversation.json"):
     }
     content = ""
     for message in sample["conversations"]:
-        content += message["content"] + "\n"
+        content += message["value"] + "\n"
     result["Content"] = content.strip()
     result["Length"] = len(result["Content"])
     return result
