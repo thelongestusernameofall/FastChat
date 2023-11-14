@@ -57,6 +57,20 @@ def is_valid_sample(sample):
     return True
 
 
+def sft_to_pretrain(sample, file_name: str = "sft-conversation.json"):
+    result = {
+        "Content": None,
+        "File": file_name,
+        "Length": -1
+    }
+    content = ""
+    for message in sample["conversations"]:
+        content += message["content"] + "\n"
+    result["Content"] = content.strip()
+    result["Length"] = len(result["Content"])
+    return result
+
+
 def sample_and_shuffle(input_file, sample_count, output_file, len_limit=4090, n_jobs=8):
     if "," in input_file:
         files = input_file.split(",")
@@ -84,6 +98,10 @@ def sample_and_shuffle(input_file, sample_count, output_file, len_limit=4090, n_
         sampled_data = valid_samples
     random.shuffle(sampled_data)
 
+    if args.type == "pretrain":
+        sampled_data = parallel_map(sft_to_pretrain, sampled_data, n_jobs=n_jobs, desc="Converting to Pretrain Format")
+        sampled_data = list(sampled_data)
+
     # 保存到输出的JSON文件
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(sampled_data, f, ensure_ascii=False, indent=4)
@@ -96,7 +114,9 @@ if __name__ == '__main__':
                         help="Number of elements to sample from the input JSON.")
     parser.add_argument('-l', "--length", type=int, required=False, default=4090, help="Length limit of whole sample")
     parser.add_argument('-o', '--output', required=True, help="Output JSON file name.")
-    parser.add_argument('-t', '--threads', type=int, required=False, default=8, help="Number of threads to use.")
+    parser.add_argument('-j', '--jobs', type=int, required=False, default=8, help="Number of threads to use.")
+    parser.add_argument('-t', '--type', type=str, choices=["sft", "pretrain"], required=False, default="sft",
+                        help="type of sample to generate")
     args = parser.parse_args()
 
     sample_and_shuffle(args.input, args.number, args.output, args.length, args.threads)
