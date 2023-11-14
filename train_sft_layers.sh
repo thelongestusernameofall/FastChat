@@ -93,4 +93,36 @@ else
     exit 1
 fi
 
+## 复制tokenizer model
+
+copy_tokenizer_files() {
+    base_model=$1  # 源目录路径
+    output_dir=$2  # 目标目录路径
+
+    # 检查源目录是否存在
+    if [ ! -d "$base_model" ]; then
+        echo "源目录不存在: $base_model"
+        return 1
+    fi
+
+    # 检查目标目录是否存在，如果不存在则创建
+    if [ ! -d "$output_dir" ]; then
+        echo "目标目录不存在，正在创建: $output_dir"
+        mkdir -p "$output_dir"
+    fi
+
+    # 复制文件
+    cp "$base_model/special_tokens_map.json" "$output_dir/"
+    cp "$base_model/tokenizer_config.json" "$output_dir/"
+    cp "$base_model/tokenizer.json" "$output_dir/"
+    cp "$base_model/tokenizer.model" "$output_dir/"
+
+    echo "文件已成功复制到 $output_dir"
+}
+
+# 使用函数
+# copy_tokenizer_files "path/to/base_model" "path/to/output_dir"
+
+copy_tokenizer_files "${base_model}" "${output_dir}"
+
 echo "Done, generated model is in ${output_dir}"
