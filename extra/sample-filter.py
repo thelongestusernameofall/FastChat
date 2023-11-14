@@ -71,7 +71,7 @@ def sft_to_pretrain(sample, file_name: str = "sft-conversation.json"):
     return result
 
 
-def sample_and_shuffle(input_file, sample_count, output_file, len_limit=4090, n_jobs=8):
+def sample_and_shuffle(input_file, sample_count, output_file, len_limit=4090, n_jobs=8, output_type: str = "sft"):
     if "," in input_file:
         files = input_file.split(",")
     else:
@@ -98,7 +98,7 @@ def sample_and_shuffle(input_file, sample_count, output_file, len_limit=4090, n_
         sampled_data = valid_samples
     random.shuffle(sampled_data)
 
-    if args.type == "pretrain":
+    if output_type == "pretrain":
         sampled_data = parallel_map(sft_to_pretrain, sampled_data, n_jobs=n_jobs, desc="Converting to Pretrain Format")
         sampled_data = list(sampled_data)
 
@@ -125,4 +125,4 @@ if __name__ == '__main__':
                         help="type of sample to generate")
     args = parser.parse_args()
 
-    sample_and_shuffle(args.input, args.number, args.output, args.length, args.threads)
+    sample_and_shuffle(args.input, args.number, args.output, args.length, args.jobs, args.type)
