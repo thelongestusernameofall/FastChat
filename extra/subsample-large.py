@@ -15,7 +15,7 @@ def process_file(file, sample_rate, output_lock, output_file):
                 try:
                     data = json.loads(line)
                     with output_lock:
-                        json.dump(data, output_file)
+                        json.dump(data, output_file, ensure_ascii=False)
                         output_file.write('\n')
                 except json.JSONDecodeError:
                     pass  # 忽略无效的JSON行
