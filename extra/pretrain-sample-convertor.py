@@ -3,6 +3,7 @@
 
 import argparse
 import json
+import random
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from tqdm import tqdm
@@ -48,6 +49,7 @@ def main():
     parser.add_argument("-t", "--type", type=str, required=False, choices=['json', 'jsonl'], default="jsonl",
                         help="Input file type.")
     parser.add_argument("-j", "--jobs", type=int, required=False, default=16, help="Number of jobs to run in parallel.")
+    parser.add_argument("-r", "--ratio", type=float, required=False, default=1, help="Ratio of samples to keep.")
 
     args = parser.parse_args()
     input_file = args.input
@@ -69,6 +71,10 @@ def main():
     samples = parallel_map(item_to_sample, data, n_jobs=jobs_n, desc="Filtering", unit="sample")
     samples = [sample for sample in samples if sample is not None]
     print(f"len(samples) = {len(samples)}")
+
+    # random sampling samples with ratio
+    random.shuffle(samples)
+    samples = samples[:int(len(samples) * args.ratio)]
 
     if args.type == "json":
         with open(output_file, "w", encoding="UTF8") as f:
