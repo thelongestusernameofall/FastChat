@@ -8,6 +8,8 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
+
 import torch
 import argparse
 from transformers import AutoModel
@@ -49,12 +51,14 @@ def load_and_print_pt_models_in_directory(directory):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Load a model and print its state_dict.")
-    parser.add_argument("-p", "--path", type=str, required=True,
+    parser.add_argument("-p", "--path", type=str, required=False, default=None, nargs="?",
                         help="Path to the model or directory containing .pt/.pth files.")
-    parser.add_argument("-t", "--type", choices=["hf", "pth"], required=True,
+    parser.add_argument("-t", "--type", choices=["hf", "pth"], required=False, default="hf",
                         help="Specify model type: 'hf' for HuggingFace model, 'pth' for PyTorch .pt or .pth files.")
 
     args = parser.parse_args()
+    if args.path is None and len(sys.argv) > 1:
+        args.path = sys.argv[1]
 
     if args.type == "hf":
         load_and_print_hf_model(args.path)

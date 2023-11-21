@@ -1,0 +1,5 @@
+deepspeed
+peft
+flash-attn
+datasets
+SentencePiece
