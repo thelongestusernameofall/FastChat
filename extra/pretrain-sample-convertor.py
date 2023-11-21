@@ -70,11 +70,11 @@ def main():
 
     samples = parallel_map(item_to_sample, data, n_jobs=jobs_n, desc="Filtering", unit="sample")
     samples = [sample for sample in samples if sample is not None]
-    print(f"len(samples) = {len(samples)}")
 
     # random sampling samples with ratio
     random.shuffle(samples)
     samples = samples[:int(len(samples) * args.ratio)]
+    print(f"len(samples) = {len(samples)}")
 
     if args.type == "json":
         with open(output_file, "w", encoding="UTF8") as f:
