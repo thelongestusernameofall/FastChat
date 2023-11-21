@@ -32,8 +32,10 @@ def load_and_print_hf_model(model_dir):
     print(f"model: {model}")
     print("=================[state_dict]========================")
     print_state_dict_of_model(model)
-    print("=================[named_parameters]========================")
-    print_named_parameters_of_model(model)
+
+    ## most of the cases, the named_parameters are the same as the state_dict
+    # print("=================[named_parameters]========================")
+    # print_named_parameters_of_model(model)
 
 
 def load_and_print_pt_model(model_path):
