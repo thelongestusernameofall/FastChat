@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # coding=utf-8
 
-import os, sys, json, random
 import argparse
+import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from tqdm import tqdm
@@ -30,12 +30,12 @@ def item_to_sample(item: dict):
     # id, content --》 'Content', 'File', 'Length'
     if not "id" in item or not "content" in item:
         return None
-    len = len(item["content"])
+    length = len(item["content"])
 
     sample = {
         "Content": item["content"],
         "File": item["id"],
-        "Length": len
+        "Length": length
     }
     return sample
 
