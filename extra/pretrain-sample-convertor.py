@@ -1,2 +1,86 @@
 #!/usr/bin/env python
 # coding=utf-8
+
+import os, sys, json, random
+import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+from tqdm import tqdm
+
+
+def parallel_map(func, iterable, n_jobs=-1, desc="Processing", unit="task"):
+    if n_jobs == -1:
+        n_jobs = None
+
+    results = []
+    with ThreadPoolExecutor(max_workers=n_jobs) as executor:
+        futures = [executor.submit(func, item) for item in iterable]
+
+        # 创建进度条
+        with tqdm(total=len(futures), desc=desc, unit=unit) as pbar:
+            for future in as_completed(futures):
+                # 每当一个future完成，更新进度条
+                pbar.update(1)
+                results.append(future.result())
+
+    return results
+
+
+def item_to_sample(item: dict):
+    # id, content --》 'Content', 'File', 'Length'
+    if not "id" in item or not "content" in item:
+        return None
+    len = len(item["content"])
+
+    sample = {
+        "Content": item["content"],
+        "File": item["id"],
+        "Length": len
+    }
+    return sample
+
+
+def main():
+    # input_file, output_file, jobs_n
+    parser = argparse.ArgumentParser(description="Filter samples from a json file.")
+    parser.add_argument("-i", "--input", type=str, required=True, help="Input file path.")
+    parser.add_argument("-o", "--output", type=str, required=True, help="Output file path.")
+    parser.add_argument("-t", "--type", type=str, required=False, choices=['json', 'jsonl'], default="jsonl",
+                        help="Input file type.")
+    parser.add_argument("-j", "--jobs", type=int, required=False, default=16, help="Number of jobs to run in parallel.")
+
+    args = parser.parse_args()
+    input_file = args.input
+    output_file = args.output
+    jobs_n = args.jobs
+
+    data = []
+
+    if args.type == "json":
+        with open(input_file, "r", encoding="UTF8") as f:
+            data = json.load(f)
+    elif args.type == "jsonl":
+        with open(input_file, "r", encoding="UTF8") as f:
+            for line in f:
+                data.append(json.loads(line))
+
+    print(f"len(data) = {len(data)}")
+
+    samples = parallel_map(item_to_sample, data, n_jobs=jobs_n, desc="Filtering", unit="sample")
+    samples = [sample for sample in samples if sample is not None]
+    print(f"len(samples) = {len(samples)}")
+
+    if args.type == "json":
+        with open(output_file, "w", encoding="UTF8") as f:
+            json.dump(samples, f, ensure_ascii=False, indent=4)
+    elif args.type == "jsonl":
+        with open(output_file, "w", encoding="UTF8") as f:
+            for sample in samples:
+                json.dump(sample, f, ensure_ascii=False)
+                f.write("\n")
+
+    print(f"Done. Output file: {output_file}")
+
+
+if __name__ == "__main__":
+    main()
