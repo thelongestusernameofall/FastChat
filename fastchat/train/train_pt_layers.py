@@ -51,6 +51,17 @@ from transformers import TrainerCallback
 from deepspeed import get_accelerator
 
 
+def trainer_save_model_safe(trainer: transformers.Trainer):
+    from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
+    from torch.distributed.fsdp import StateDictType, FullStateDictConfig
+
+    save_policy = FullStateDictConfig(offload_to_cpu=True, rank0_only=True)
+    with FSDP.state_dict_type(
+            trainer.model, StateDictType.FULL_STATE_DICT, save_policy
+    ):
+        trainer.save_model()
+
+
 class PretrainDataset(Dataset):
     def __init__(self,
                  tokenizer,
@@ -552,24 +563,34 @@ def train():
     trainer.save_state()
 
     # check if zero3 mode enabled
-    if deepspeed.is_deepspeed_zero3_enabled():
-        # use deepspeed engine internal function to gather state dict
-        # state_dict_zero3 contains whole parameters of base and lora adapters
-        # we will not extract lora parameters since peft save_pretrained will do that
-        # https://github.com/huggingface/peft/blob/3714aa2fff158fdfa637b2b65952580801d890b2/src/peft/peft_model.py#L125
-        # https://github.com/huggingface/peft/blob/3714aa2fff158fdfa637b2b65952580801d890b2/src/peft/utils/save_and_load.py#L19
-        state_dict_zero3 = trainer.model_wrapped._zero3_consolidated_16bit_state_dict()
-        if training_args.local_rank == 0:
-            state_dict = state_dict_zero3
+    # if deepspeed.is_deepspeed_zero3_enabled():
+    #     # use deepspeed engine internal function to gather state dict
+    #     # state_dict_zero3 contains whole parameters of base and lora adapters
+    #     # we will not extract lora parameters since peft save_pretrained will do that
+    #     # https://github.com/huggingface/peft/blob/3714aa2fff158fdfa637b2b65952580801d890b2/src/peft/peft_model.py#L125
+    #     # https://github.com/huggingface/peft/blob/3714aa2fff158fdfa637b2b65952580801d890b2/src/peft/utils/save_and_load.py#L19
+    #     state_dict_zero3 = trainer.model_wrapped._zero3_consolidated_16bit_state_dict()
+    #     if training_args.local_rank == 0:
+    #         state_dict = state_dict_zero3
+    #         model.save_pretrained(training_args.output_dir, state_dict=state_dict)
+    #         print(f"save model to {training_args.output_dir} with is_deepspeed_zero3_enabled true")
+    # else:
+    #     trainer_save_model_safe(trainer)
+    #     print(f"save model to {training_args.output_dir} with trainer_save_model_safe")
+    #
+    # if training_args.local_rank == 0:
+    #     # 额外保存一份
+    #     trainer._save_checkpoint(
+    #         training_args.output_dir + "-ds", trial=None
+    #     )
+    #     print(f"save model to {training_args.output_dir} with trainer_save_model_safe")
+
+    if trainer.is_deepspeed_enabled:
+        trainer.save_model()
+        print(f"save model to {training_args.output_dir} with deepspeed_enabled")
     else:
-        # in other mode we use original code from fastchat team, to make sure our change is minimum
-        state_dict = get_peft_state_maybe_zero_3(
-            model.named_parameters(), lora_args.lora_bias
-        )
-
-    if training_args.local_rank == 0:
-        model.save_pretrained(training_args.output_dir, state_dict=state_dict)
-
+        trainer_save_model_safe(trainer)
+        print(f"save model to {training_args.output_dir} without deepspeed")
 
 if __name__ == "__main__":
     train()
