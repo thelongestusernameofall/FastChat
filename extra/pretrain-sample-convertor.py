@@ -43,13 +43,15 @@ def item_to_sample(item: dict):
 
 def main():
     # input_file, output_file, jobs_n
-    parser = argparse.ArgumentParser(description="Filter samples from a json file.")
+    parser = argparse.ArgumentParser(
+        description="Convert pretrain samples from InternLM to Icesword format, and subsampling and spliting into mulitipoles files.")
     parser.add_argument("-i", "--input", type=str, required=True, help="Input file path.")
     parser.add_argument("-o", "--output", type=str, required=True, help="Output file path.")
     parser.add_argument("-t", "--type", type=str, required=False, choices=['json', 'jsonl'], default="jsonl",
                         help="Input file type.")
     parser.add_argument("-j", "--jobs", type=int, required=False, default=16, help="Number of jobs to run in parallel.")
     parser.add_argument("-r", "--ratio", type=float, required=False, default=1, help="Ratio of samples to keep.")
+    parser.add_argument("-s", "--split", type=int, required=False, default=1, help="Number of files to split into.")
 
     args = parser.parse_args()
     input_file = args.input
@@ -68,7 +70,7 @@ def main():
 
     print(f"len(data) = {len(data)}")
 
-    samples = parallel_map(item_to_sample, data, n_jobs=jobs_n, desc="Filtering", unit="sample")
+    samples = parallel_map(item_to_sample, data, n_jobs=jobs_n, desc="Convert", unit="sample")
     samples = [sample for sample in samples if sample is not None]
 
     # random sampling samples with ratio
@@ -77,15 +79,30 @@ def main():
     print(f"len(samples) = {len(samples)}")
 
     if args.type == "json":
-        with open(output_file, "w", encoding="UTF8") as f:
-            json.dump(samples, f, ensure_ascii=False, indent=4)
+        if args.split <= 1:
+            with open(output_file, "w", encoding="UTF8") as f:
+                json.dump(samples, f, ensure_ascii=False, indent=4)
+        else:
+            for i in range(args.split):
+                with open(f"{output_file}.{i}", "w", encoding="UTF8") as f:
+                    json.dump(samples[i::args.split], f, ensure_ascii=False, indent=4)
     elif args.type == "jsonl":
-        with open(output_file, "w", encoding="UTF8") as f:
-            for sample in samples:
-                json.dump(sample, f, ensure_ascii=False)
-                f.write("\n")
+        if args.split <= 1:
+            with open(output_file, "w", encoding="UTF8") as f:
+                for sample in samples:
+                    json.dump(sample, f, ensure_ascii=False)
+                    f.write("\n")
+        else:
+            for i in range(args.split):
+                with open(f"{output_file}.{i}", "w", encoding="UTF8") as f:
+                    for sample in samples[i::args.split]:
+                        json.dump(sample, f, ensure_ascii=False)
+                        f.write("\n")
 
-    print(f"Done. Output file: {output_file}")
+    if args.split <= 1:
+        print(f"Done. Output file: {output_file}")
+    else:
+        print(f"Done. Output files: {[f'{output_file}.{i}' for i in range(args.split)]}")
 
 
 if __name__ == "__main__":
