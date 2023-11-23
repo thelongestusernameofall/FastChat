@@ -36,6 +36,9 @@ IGNORE_TOKEN_ID = LabelSmoother.ignore_index
 @dataclass
 class ModelArguments:
     model_name_or_path: Optional[str] = field(default="facebook/opt-125m")
+    padding_side: str = field(
+        default="right", metadata={"help": "The padding side in tokenizer"}
+    )
 
 
 @dataclass
@@ -350,10 +353,12 @@ def train():
         model_args.model_name_or_path,
         cache_dir=training_args.cache_dir,
         model_max_length=training_args.model_max_length,
-        padding_side="right",
+        padding_side=model_args.padding_side,
         use_fast=False,
     )
-    tokenizer.pad_token = tokenizer.unk_token
+
+    if tokenizer.pad_token != tokenizer.unk_token:
+        tokenizer.pad_token = tokenizer.unk_token
 
     # Load data
     data_module = make_supervised_data_module(tokenizer=tokenizer, data_args=data_args)
@@ -371,11 +376,8 @@ def train():
     # Save model
     model.config.use_cache = True
     trainer.save_state()
-    if deepspeed.is_deepspeed_zero3_enabled():
-        state_dict_zero3 = trainer.model_wrapped._zero3_consolidated_16bit_state_dict()
-        if training_args.local_rank == 0:
-            state_dict = state_dict_zero3
-            model.save_pretrained(training_args.output_dir, state_dict=state_dict)
+    if trainer.is_deepspeed_enabled:
+        trainer.save_model()
     else:
         trainer_save_model_safe(trainer)
 

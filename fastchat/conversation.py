@@ -28,6 +28,7 @@ class SeparatorStyle(IntEnum):
     PHOENIX = auto()
     ROBIN = auto()
     FALCON_CHAT = auto()
+    CHATGLM3 = auto()
 
 
 @dataclasses.dataclass
@@ -162,6 +163,16 @@ class Conversation:
                     ret += role + "\n" + message + self.sep + "\n"
                 else:
                     ret += role + "\n"
+            return ret
+        elif self.sep_style == SeparatorStyle.CHATGLM3:
+            ret = ""
+            if self.system_message:
+                ret += system_prompt
+            for role, message in self.messages:
+                if message:
+                    ret += role + "\n" + " " + message
+                else:
+                    ret += role
             return ret
         elif self.sep_style == SeparatorStyle.CHATINTERN:
             # source: https://huggingface.co/internlm/internlm-chat-7b-8k/blob/bd546fa984b4b0b86958f56bf37f94aa75ab8831/modeling_internlm.py#L771
@@ -465,6 +476,32 @@ register_conv_template(
     )
 )
 
+# ChatGLM3 default template
+register_conv_template(
+    Conversation(
+        name="chatglm3",
+        system_template="<|system|>\n {system_message}",
+        roles=("<|user|>", "<|assistant|>"),
+        sep_style=SeparatorStyle.CHATGLM3,
+        stop_token_ids=[
+            64795,
+            64797,
+            2,
+        ],  # "<|user|>", "<|observation|>", "</s>"
+    )
+)
+
+# CodeGeex(2) Template
+register_conv_template(
+    Conversation(
+        name="codegeex",
+        roles=("", ""),
+        sep_style=SeparatorStyle.NO_COLON_SINGLE,
+        sep="\n\n",
+        stop_token_ids=[0, 2],
+    )
+)
+
 # Dolly V2 default template
 register_conv_template(
     Conversation(
@@ -506,6 +543,19 @@ register_conv_template(
         sep="<|end_of_turn|>",
     )
 )
+
+# Deepseek code default template
+register_conv_template(
+    Conversation(
+        name="deepseek",
+        system_template="You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer.",
+        roles=("### Instruction:", "### Response:"),
+        sep="\n",
+        stop_str="<|EOT|>",
+        sep_style=SeparatorStyle.ADD_NEW_LINE_SINGLE,
+    )
+)
+
 
 # Tulu default template
 register_conv_template(
@@ -1096,6 +1146,20 @@ register_conv_template(
     )
 )
 
+# Stable Vicuna default template
+# source: https://huggingface.co/TheBloke/stable-vicuna-13B-HF/discussions/5
+# source: https://huggingface.co/spaces/CarperAI/StableVicuna/blob/main/app.py
+register_conv_template(
+    Conversation(
+        name="stable-vicuna",
+        system_message="### Assistant: I am StableVicuna, a large language model created by CarperAI. I am here to chat!\n",
+        roles=("### Human", "### Assistant"),
+        sep_style=SeparatorStyle.ADD_COLON_TWO,
+        sep="\n",
+        sep2="\n\n",
+    )
+)
+
 register_conv_template(
     Conversation(
         name="vigogne_chat_v3",
@@ -1170,6 +1234,19 @@ register_conv_template(
     )
 )
 
+# Orca-2 template
+# reference: https://huggingface.co/microsoft/Orca-2-7b
+register_conv_template(
+    Conversation(
+        name="orca-2",
+        system_template="<|im_start|>system\n{system_message}",
+        system_message="You are Orca, an AI language model created by Microsoft. You are a cautious assistant. You carefully follow instructions. You are helpful and harmless and you follow ethical guidelines and promote positive behavior.",
+        roles=("<|im_start|>user", "<|im_start|>assistant"),
+        sep_style=SeparatorStyle.CHATML,
+        sep="<|im_end|>",
+        stop_str="<|im_end|>",
+    )
+)
 
 if __name__ == "__main__":
     from fastchat.conversation import get_conv_template
