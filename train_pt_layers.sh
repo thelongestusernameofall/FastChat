@@ -7,6 +7,9 @@
 #export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 #base_model=../llama-2-zh/chinese-alpaca-2-13b
 
+export NCCL_IB_GID_INDEX=3
+export NCCL_DEBUG=ERROR
+
 base_model=../zh-pt829-pt
 lora_name=../zh-pt830
 target_name=../zh-pt830
@@ -59,7 +62,7 @@ else
 fi
 
 
-deepspeed fastchat/train/train_pt_layers.py \
+deepspeed --hostfile=/mnt/data/run/hostfile fastchat/train/train_pt_layers.py \
     --model_name_or_path ${base_model}  \
     --lora_r 8 \
     --lora_alpha 16 \
