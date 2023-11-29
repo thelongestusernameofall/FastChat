@@ -21,9 +21,9 @@ def process_file(file, sample_rate, output_lock, output_file):
                     pass  # 忽略无效的JSON行
 
 
-def main(sample_rate, output_file_path):
-    # 查找当前目录及子目录下所有的.jsonl文件
-    files = glob.glob('**/*.jsonl', recursive=True)
+def main(sample_rate, output_file_path, input_dir="."):
+    # 查找input_dir及子目录下所有的.jsonl文件
+    files = glob.glob(f'{input_dir}/**/*.jsonl', recursive=True)
 
     # 打开输出文件
     with open(output_file_path, 'w') as f_out:
@@ -42,7 +42,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process .jsonl files.')
     parser.add_argument('--sample_rate', type=float, required=True, help='The sampling rate (between 0 and 1)')
     parser.add_argument('--output_file', type=str, required=True, help='Output file path')
+    parser.add_argument('--input_dir', type=str, required=False, default=".", help='input file dir')
 
     args = parser.parse_args()
 
-    main(args.sample_rate, args.output_file)
+    main(args.sample_rate, args.output_file, args.input_dir)
