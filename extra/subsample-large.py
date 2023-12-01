@@ -40,9 +40,9 @@ def main(sample_rate, output_file_path, input_dir="."):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process .jsonl files.')
-    parser.add_argument('--sample_rate', type=float, required=True, help='The sampling rate (between 0 and 1)')
-    parser.add_argument('--output_file', type=str, required=True, help='Output file path')
-    parser.add_argument('--input_dir', type=str, required=False, default=".", help='input file dir')
+    parser.add_argument('-s', '--sample_rate', type=float, required=True, help='The sampling rate (between 0 and 1)')
+    parser.add_argument('-o', '--output_file', type=str, required=True, help='Output file path')
+    parser.add_argument('-i', '--input_dir', type=str, required=False, default=".", help='input file dir')
 
     args = parser.parse_args()
 
