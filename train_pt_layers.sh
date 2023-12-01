@@ -20,11 +20,15 @@ max_length=512
 lora=False
 clear_cache=False
 
+lr=2e-5
+lr=2e-5
+
 #lora_target_modules="q_proj, v_proj, k_proj, o_proj, gate_proj, down_proj, up_proj"
-lora_target_modules='q_proj, v_proj, k_proj, o_proj'
+lora_target_modules='q_proj'
 
 layers='all'
-layers="layers.3 layers.4"
+layers="layers.40 41 42 43 44 45 46"
+layers="layers.4"
 
 if [[ "$lora" == "True" ]]; then
     echo "Using lora"
@@ -84,9 +88,9 @@ deepspeed --hostfile=/mnt/data/run/hostfile fastchat/train/train_pt_layers.py \
     --save_strategy "steps" \
     --save_steps 2000 \
     --save_total_limit 2 \
-    --learning_rate 2e-5 \
+    --learning_rate ${lr} \
     --weight_decay 0. \
-    --warmup_ratio 0.03 \
+    --warmup_ratio 0.00 \
     --lr_scheduler_type "cosine" \
     --logging_strategy "steps" \
     --logging_steps 1 \

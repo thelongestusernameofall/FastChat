@@ -3,19 +3,22 @@
 # sft model specific layers
 #
 
-base_model=../test
-output_dir=../test-v2
+base_model=../icesword-16k
+base_model=../test-1.3-ptv1
+output_dir=../test-1.3-ptv1-sft1
 data_path=../data-sft/all-sharegpt-v3-no-imsorry.json
+data_path=../data-sft/len2000-test.json
 
-epochs=3
-batch_size=4
+epochs=6
+batch_size=1
 max_length=4096
 
 #lr=2e-5
-lr=7e-4
+lr=2e-4
 
 layers='all'
-layers="layers.3 layers.4"
+layers="layers.40 41 42 43 44 45 46"
+layers="layers.4"
 
 # Check for --overwrite argument
 overwrite=false
