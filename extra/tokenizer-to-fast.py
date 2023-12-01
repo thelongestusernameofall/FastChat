@@ -31,3 +31,7 @@ def main():
     args = parser.parse_args()
 
     convert_to_fast(args.model_name, args.output_dir, args.bak)
+
+
+if __name__ == '__main__':
+    main()
