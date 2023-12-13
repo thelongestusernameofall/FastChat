@@ -14,7 +14,7 @@ PORT=5555                                         # FastAPI 服务的端口
 torch_dist_port=29555                             # torch 分布式训练端口
 
 # 运行 Python 脚本
-python MiiServer.py --model_name $MODEL_NAME \
+python extra/MiiServer.py --model_name $MODEL_NAME \
                --deployment_name $DEPLOYMENT_NAME \
                --restful_api_port $RESTFUL_API_PORT \
                --torch_dist_port $torch_dist_port \
