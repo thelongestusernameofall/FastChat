@@ -24,37 +24,54 @@ def parallel_map(func, iterable, n_jobs=-1, desc="Processing", unit="task"):
     return results
 
 
-def is_valid_sample(sample):
-    # 定义预期的角色顺序
-    expected_roles = ["human", "gpt"]
+def is_valid_sample(sample, type="sft"):
+    """
+    检查样本是否有效
+    :param sample: 样本
+    :param type: 样本类型，可选值为"sft"或"pretrain"，"dpo"
+    """
+    if type == "sft":
+        # 定义预期的角色顺序
+        expected_roles = ["human", "gpt"]
 
-    if not 'conversations' in sample:
-        return False
-
-    conv = sample['conversations']
-    if not isinstance(conv, list):
-        return False
-    if len(conv) < 2:
-        return False
-    try:
-        # 检查列表的第一项是否是一个字典，并且包含"from"键
-        if "from" not in conv[0]:
-            # print(f"Invalid sample (first item is not a dict or missing 'from' key): {sample}")
-            return False
-    except:
-        print(f"sample is {sample}")
-        return False
-
-    # 检查对话是否以人类开始
-    if conv[0]["from"] != expected_roles[0]:
-        return False
-
-    # 检查每一条消息的角色是否与预期的角色相符
-    for index, message in enumerate(conv):
-        if message["from"] != expected_roles[index % 2]:
+        if not 'conversations' in sample:
             return False
 
-    return True
+        conv = sample['conversations']
+        if not isinstance(conv, list):
+            return False
+        if len(conv) < 2:
+            return False
+        try:
+            # 检查列表的第一项是否是一个字典，并且包含"from"键
+            if "from" not in conv[0]:
+                # print(f"Invalid sample (first item is not a dict or missing 'from' key): {sample}")
+                return False
+        except:
+            print(f"sample is {sample}")
+            return False
+
+        # 检查对话是否以人类开始
+        if conv[0]["from"] != expected_roles[0]:
+            return False
+
+        # 检查每一条消息的角色是否与预期的角色相符
+        for index, message in enumerate(conv):
+            if message["from"] != expected_roles[index % 2]:
+                return False
+
+        return True
+    elif type == "dpo":
+        # "query","sft_answer","model_answer" or "question", "response_j", "response_k"
+        if 'query' in sample and 'sft_answer' in sample and 'model_answer' in sample:
+            return True
+        elif 'question' in sample and 'response_j' in sample and 'response_k' in sample:
+            return True
+        else:
+            return False
+    elif type == "pretrain":
+        return True
+    return False
 
 
 def sft_to_pretrain(sample, file_name: str = "sft-conversation.json"):
@@ -83,7 +100,7 @@ def sample_and_shuffle(input_file, sample_count, output_file, len_limit=4090, n_
             data.extend(d)
 
     # 过滤不符合条件的样本
-    valid_samples = parallel_map(lambda x: x if is_valid_sample(x) and len(str(x)) < len_limit else None, data,
+    valid_samples = parallel_map(lambda x: x if is_valid_sample(x, ) and len(str(x)) < len_limit else None, data,
                                  n_jobs=n_jobs, desc="Filtering Invalid Samples")
     valid_samples = [sample for sample in valid_samples if sample is not None]
 
@@ -121,7 +138,7 @@ if __name__ == '__main__':
     parser.add_argument('-l', "--length", type=int, required=False, default=4090, help="Length limit of whole sample")
     parser.add_argument('-o', '--output', required=True, help="Output JSON file name.")
     parser.add_argument('-j', '--jobs', type=int, required=False, default=8, help="Number of threads to use.")
-    parser.add_argument('-t', '--type', type=str, choices=["sft", "pretrain"], required=False, default="sft",
+    parser.add_argument('-t', '--type', type=str, choices=["sft", "pretrain", "dpo"], required=False, default="sft",
                         help="type of sample to generate")
     args = parser.parse_args()
 
