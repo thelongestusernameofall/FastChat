@@ -1541,7 +1541,7 @@ class QwenChatAdapter(BaseModelAdapter):
     """
 
     def match(self, model_path: str):
-        return "qwen" in model_path.lower()
+        return "qwen" in model_path.lower() or "-004" in model_path.lower()
 
     def float_set(self, config, option):
         config.bf16 = False
