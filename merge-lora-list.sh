@@ -2,9 +2,9 @@
 # merge lora list
 
 # lora_list is a list of lora models
-base_model=../llama-2-zh/chinese-alpaca-2-13b-sft923-v2
-lora_list=(../llama-2-zh/chinese-alpaca-2-13b-sft923-v3-lora ../llama-2-zh/chinese-alpaca-2-13b-sft923-v4-lora ../llama-2-zh/chinese-alpaca-2-13b-sft923-v5-lora)
-output_model=../llama-2-zh/chinese-alpaca-2-13b-sft923-v5
+base_model=../llama-2-zh/chinese-alpaca-2-13b-act1206-v3-t2
+lora_list=(../llama-2-zh/chinese-alpaca-2-13b-act1206-v4-t2-lora)
+output_model=../llama-2-zh/chinese-alpaca-2-13b-act1206-v4-t2
 
 temp_sft=../temp-sft
 temp_base=../temp-base

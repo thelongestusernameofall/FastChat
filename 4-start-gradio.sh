@@ -1,5 +1,5 @@
 #!/bin/bash
-export OPENAI_API_BASE="https://api.360.cn/"
+export OPENAI_API_BASE="https://api.360.cn/v1"
 export OPENAI_API_KEY="fk1007450431.l5UjXztYHaGsJ8LQAMjow8L8TbkMtrU469e66468"
 
 host="0.0.0.0"
