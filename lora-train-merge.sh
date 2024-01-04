@@ -1,25 +1,27 @@
 #!/bin/bash
 # train lora and merge
 
-base_model=../llama-2-zh/chinese-alpaca-2-7b
-base_model=../llama-2-zh/chinese-alpaca-2-1.3b
-base_model=../llama-2-zh/chinese-alpaca-2-13b-sft1102-v6-t6
-base_model=../llama-2-zh/chinese-alpaca-2-13b-inf1029-v5-t5
+#base_model=../llama-2-zh/chinese-alpaca-2-7b
+#lora_name=../llama-2-zh/chinese-alpaca-2-7b-act1223-v1-lora
+#sft_name=../llama-2-zh/chinese-alpaca-2-13b-16k-inf1120-v17
+#sft_name=../llama-2-zh/chinese-alpaca-2-7b-act1223-v1
 
-base_model=../llama-2-zh/chinese-alpaca-2-13b-16k-inf1120-v10
-lora_name=../llama-2-zh/chinese-alpaca-2-13b-16k-inf1120-v11-lora
-sft_name=../llama-2-zh/chinese-alpaca-2-13b-16k-inf1120-v11
+#base_model=../llama-2-zh/chinese-alpaca-2-13b-sft1102-v6-t6
+#base_model=../llama-2-zh/chinese-alpaca-2-13b-act1206-v2-t2
+base_model=../llama-2-zh/chinese-alpaca-2-13b-act1206-v4-t2
+lora_name=../llama-2-zh/chinese-alpaca-2-13b-act1206-v5-t2-lora
+sft_name=../llama-2-zh/chinese-alpaca-2-13b-act1206-v5-t2
 
-data_path=../data-sft/webshell-1123-3000-completions-sft-clean-limited8100len.json
-#data_path=../data-sft/1120-quake+hql.json
-epochs=8
+data_path=../data-sft/a+b-1225-sample.json
+
+epochs=2
 batch_size=1
-#conv_name="vicuna_v1.1"
-conv_name="llama-2"
-max_length=8200
+conv_name="vicuna_v1.1"
+#conv_name="llama-2"
+max_length=2048
 
 #lora_target_modules="q_proj, v_proj, k_proj, o_proj, gate_proj, down_proj, up_proj"
-lora_target_modules='q_proj, v_proj, up_proj, down_proj'
+#lora_target_modules='q_proj, v_proj, up_proj, down_proj'
 lora_target_modules='q_proj, v_proj'
 #lora_target_modules='layers.4.self_attn.q_proj, layers.4.self_attn.k_proj, layers.4.self_attn.v_proj, layers.4.self_attn.o_proj, layers.4.mlp.gate_proj, layers.4.mlp.up_proj, layers.4.mlp.down_proj'
 
@@ -28,8 +30,8 @@ deepspeedconf=deepspeed-cpu.json
 deepspeedconf=playground/deepspeed_config_s3.json
 deepspeedconf=deepspeed_s3.json
 
-#lr=2e-5
-lr=4e-5
+lr=2e-5
+#lr=2e-4
 
 unset http_proxy && unset https_proxy
 # Check for the --overwrite flag
@@ -68,7 +70,7 @@ deepspeed fastchat/train/train_lora.py \
     --eval_steps 100  \
     --save_strategy "steps" \
     --save_steps 2000 \
-    --save_total_limit 2 \
+    --save_total_limit 1 \
     --learning_rate ${lr} \
     --weight_decay 0. \
     --warmup_ratio 0.03 \
