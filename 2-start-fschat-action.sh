@@ -10,8 +10,9 @@ model_path=../llama-2-zh/chinese-alpaca-2-13b-act1206-v5-t2
 model_name=text-davinci-003
 conv_template="vicuna_v1.1"
 
+# api server host and port
 host='0.0.0.0'
-port=82
+port=81
 
 gpu_mem_utilization=0.2
 
@@ -51,6 +52,7 @@ python -m fastchat.serve.vllm_worker --model-path ${model_path} --model-names ${
 
 # 启动api server
 if ! pgrep -f "fastchat.serve.openai_api_server" > /dev/null; then
+    echo "Starting api server ..."
     nohup python -m fastchat.serve.openai_api_server --host $host --port $port --controller-address http://127.0.0.1:21001 > ${api_log} 2>&1 &
 else
     echo "[.] fastchat.serve.openai_api_server is already running."

@@ -50,7 +50,7 @@ fi
 # 启动 worker
 echo "Starting worker..."
 
-python -m fastchat.serve.vllm_worker --model-path ${model_path} --model-names ${model_name} --limit-worker-concurrency 1024 --controller-address http://127.0.0.1:21001 --num-gpus ${gpu_num} --conv-template ${conv_template} --host ${host} --port 31000 --worker-address http://127.0.0.1:31000 --gpu-memory-utilization ${gpu_mem_utilization} --trust-remote-code  >  ./logs/vllm_worker.log 2>&1 &
+python -m fastchat.serve.vllm_worker --model-path ${model_path} --model-names ${model_name} --limit-worker-concurrency 1024 --controller-address http://127.0.0.1:21001 --num-gpus ${gpu_num} --conv-template ${conv_template} --host ${host} --port 31001 --worker-address http://127.0.0.1:31001 --gpu-memory-utilization ${gpu_mem_utilization} --trust-remote-code  >  ./logs/vllm_worker.log 2>&1 &
 
 # 启动api server
 if ! pgrep -f "fastchat.serve.openai_api_server" > /dev/null; then
