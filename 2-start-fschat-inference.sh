@@ -11,13 +11,13 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 model_path=../llama-2-zh/chinese-alpaca-2-13b-16k-inf1120-v17
 model_name=text-davinci-002
 conv_template="llama-2"
-max_model_len=4096
+max_model_len=16300
 
 # testing
 #model_path=../QWen/Qwen-7B-Chat
 #model_name=text-davinci-004
 #conv_template="qwen-7b-chat"
-max_model_len=4096
+#max_model_len=4096
 
 gpu_mem_utilization=0.72
 
