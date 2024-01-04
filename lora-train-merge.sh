@@ -1,28 +1,35 @@
 #!/bin/bash
 # train lora and merge
 
-#base_model=../llama-2-zh/chinese-alpaca-2-13b-sft831
-base_model=../codellama/CodeLlama-13b-Instruct-hf
-lora_name=../codellama/CodeLlama-13b-Instruct-hf-sft915-lora
-sft_name=../codellama/CodeLlama-13b-Instruct-hf-sft915
-data_path=../data-sft/name.json
-epochs=10
-batch_size=24
+base_model=../llama-2-zh/chinese-alpaca-2-7b
+base_model=../llama-2-zh/chinese-alpaca-2-1.3b
+base_model=../llama-2-zh/chinese-alpaca-2-13b-sft1102-v6-t6
+base_model=../llama-2-zh/chinese-alpaca-2-13b-inf1029-v5-t5
+
+base_model=../llama-2-zh/chinese-alpaca-2-13b-16k-inf1120-v10
+lora_name=../llama-2-zh/chinese-alpaca-2-13b-16k-inf1120-v11-lora
+sft_name=../llama-2-zh/chinese-alpaca-2-13b-16k-inf1120-v11
+
+data_path=../data-sft/webshell-1123-3000-completions-sft-clean-limited8100len.json
+#data_path=../data-sft/1120-quake+hql.json
+epochs=8
+batch_size=1
 #conv_name="vicuna_v1.1"
 conv_name="llama-2"
-max_length=1024
+max_length=8200
 
 #lora_target_modules="q_proj, v_proj, k_proj, o_proj, gate_proj, down_proj, up_proj"
-lora_target_modules='q_proj, v_proj, k_proj, o_proj'
+lora_target_modules='q_proj, v_proj, up_proj, down_proj'
+lora_target_modules='q_proj, v_proj'
+#lora_target_modules='layers.4.self_attn.q_proj, layers.4.self_attn.k_proj, layers.4.self_attn.v_proj, layers.4.self_attn.o_proj, layers.4.mlp.gate_proj, layers.4.mlp.up_proj, layers.4.mlp.down_proj'
 
-deepspeedconf=deepspeed.json
-# copied from playground/deepspeed_config_s3.json,but comment out offload_cpu 
 deepspeedconf=deepspeed_s3.json
-# following z3 ok
-#deepspeedconf=playground/deepspeed_config_s3.json
+deepspeedconf=deepspeed-cpu.json
+deepspeedconf=playground/deepspeed_config_s3.json
+deepspeedconf=deepspeed_s3.json
 
-lr=2e-5
-lr=2e-4
+#lr=2e-5
+lr=4e-5
 
 unset http_proxy && unset https_proxy
 # Check for the --overwrite flag
@@ -46,8 +53,8 @@ fi
 
 deepspeed fastchat/train/train_lora.py \
     --model_name_or_path ${base_model}  \
-    --lora_r 8 \
-    --lora_alpha 16 \
+    --lora_r 16 \
+    --lora_alpha 32 \
     --lora_dropout 0.05 \
     --lora_target_modules ${lora_target_modules} \
     --data_path ${data_path} \
@@ -74,6 +81,7 @@ deepspeed fastchat/train/train_lora.py \
     --deepspeed ${deepspeedconf} \
     --gradient_checkpointing True \
     --flash_attn False \
+    --lazy_preprocess True \
     --conv_name ${conv_name}
 
 

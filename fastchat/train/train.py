@@ -13,7 +13,7 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-
+import typing
 from dataclasses import dataclass, field
 import json
 import math
@@ -24,7 +24,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 import transformers
-from transformers import Trainer
+from transformers import Trainer, deepspeed
 from transformers.trainer_pt_utils import LabelSmoother
 
 from fastchat.conversation import SeparatorStyle
@@ -36,6 +36,9 @@ IGNORE_TOKEN_ID = LabelSmoother.ignore_index
 @dataclass
 class ModelArguments:
     model_name_or_path: Optional[str] = field(default="facebook/opt-125m")
+    padding_side: str = field(
+        default="right", metadata={"help": "The padding side in tokenizer"}
+    )
 
 
 @dataclass
@@ -62,6 +65,9 @@ class TrainingArguments(transformers.TrainingArguments):
             "help": "Maximum sequence length. Sequences will be right padded (and possibly truncated)."
         },
     )
+    layers: typing.List[str] = field(  # Layers to train, e.g. "0,1,2,3", all layers will be trained if not specified
+        default_factory=lambda: []
+    )
 
 
 local_rank = None
@@ -78,15 +84,15 @@ def trainer_save_model_safe(trainer: transformers.Trainer):
 
     save_policy = FullStateDictConfig(offload_to_cpu=True, rank0_only=True)
     with FSDP.state_dict_type(
-        trainer.model, StateDictType.FULL_STATE_DICT, save_policy
+            trainer.model, StateDictType.FULL_STATE_DICT, save_policy
     ):
         trainer.save_model()
 
 
 def preprocess(
-    sources,
-    tokenizer: transformers.PreTrainedTokenizer,
-    conv_name: str = "vicuna"
+        sources,
+        tokenizer: transformers.PreTrainedTokenizer,
+        conv_name: str = "vicuna"
 ) -> Dict:
     conv = get_conversation_template(conv_name)
     roles = {"human": conv.roles[0], "gpt": conv.roles[1]}
@@ -136,7 +142,7 @@ def preprocess(
             if len(parts) != 2:
                 break
             parts[0] += sep
-            # "-2" is hardcoded for the LLaMA tokenizer to make the offset correct.
+            # "-2" is hardcoded for the Llama tokenizer to make the offset correct.
             instruction_len = len(tokenizer(parts[0]).input_ids) - 2
 
             if conv.sep_style == SeparatorStyle.LLAMA2:
@@ -145,27 +151,36 @@ def preprocess(
                     instruction_len += 1
                 if i > 1:
                     cur_len += 1
+            if i != 0 and not tokenizer.legacy:
+                # The legacy and non-legacy modes handle special tokens differently
+                instruction_len -= 1
 
             # Ignore the user instructions
-            target[cur_len : cur_len + instruction_len] = IGNORE_TOKEN_ID
+            target[cur_len: cur_len + instruction_len] = IGNORE_TOKEN_ID
             cur_len += turn_len
+
+            if i != 0 and not tokenizer.legacy:
+                # The legacy and non-legacy modes handle special tokens differently
+                cur_len -= 1
 
         if conv.sep_style == SeparatorStyle.LLAMA2:
             cur_len += 2
+
         target[cur_len:] = IGNORE_TOKEN_ID
 
         if False:  # Inspect and check the correctness of masking
             z = target.clone()
             z = torch.where(z == IGNORE_TOKEN_ID, tokenizer.unk_token_id, z)
             rank0_print(tokenizer.decode(z))
-            print('targets',tokenizer.decode(z))
+            print('targets', tokenizer.decode(z))
+            exit()
 
         if cur_len < tokenizer.model_max_length:
             if cur_len != total_len:
                 target[:] = IGNORE_TOKEN_ID
                 rank0_print(
                     f"WARNING: tokenization mismatch: {cur_len} vs. {total_len}."
-                    f" (ignored)"
+                    f" #turn = {len(turns) - 1}. (ignored)"
                 )
 
     return dict(
@@ -232,7 +247,7 @@ class LazySupervisedDataset(Dataset):
 
 
 def make_supervised_data_module(
-    tokenizer: transformers.PreTrainedTokenizer, data_args
+        tokenizer: transformers.PreTrainedTokenizer, data_args
 ) -> Dict:
     """Make dataset and collator for supervised fine-tuning."""
     dataset_cls = (
@@ -250,6 +265,62 @@ def make_supervised_data_module(
         eval_dataset = None
 
     return dict(train_dataset=train_dataset, eval_dataset=eval_dataset)
+
+
+# <方案一> 探索中
+class SimonTrainer_fast(Trainer):
+    """
+    我的Trainer类，继承自transformers.Trainer。
+    在__init__方法中，将optimizer的参数设置为requires_grad=True的参数。
+    之后设置optimizer,只传递requires_grad=True的参数。
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.args.layers and self.args.layers != ["all"]:
+            for name, param in self.model.named_parameters():
+                if any(layer_name in name for layer_name in self.args.layers):
+                    param.requires_grad = True
+                else:
+                    param.requires_grad = False
+
+    def create_optimizer(self):
+        # 仅将requires_grad=True的参数传递给优化器
+        # optimizer = super().create_optimizer()
+        optimizer = transformers.AdamW(filter(lambda p: p.requires_grad, self.model.parameters()),
+                                       lr=self.args.learning_rate)
+        return optimizer
+
+
+# <方案二> 使用中(可行但低效)
+class SimonTrainer(Trainer):
+    """
+    我的Trainer类，继承自transformers.Trainer。
+    重写Trainer的training_step方法，每步backward之前，设置model的所有参数的requires_grad为True，这样对所有参数进行梯度计算。
+    在backward之后，optimizer.step()之前，设置model的参数,除了指定的layer，其他参数的requires_grad为False，这样对指定的layer的参数进行梯度更新。
+    原因是：如果计算图中既包含了requires_grad=True的变量,也包含了requires_grad=False的变量，就会报错。
+    错误报警如下：
+     Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+RuntimeError: element 0 of tensors does not require grad and does not have a grad_fn
+    """
+
+    def training_step(self, model, inputs):
+        # set all parameters' requires_grad to True
+
+        if self.args.layers and self.args.layers != ["all"]:
+            for param in model.parameters():
+                param.requires_grad = True
+
+        # Call the original training_step
+        loss = super().training_step(model, inputs)
+
+        # set all parameters' requires_grad to False except the specified layers
+        if self.args.layers and self.args.layers != ["all"]:
+            for name, param in model.named_parameters():
+                if param.requires_grad and not any(layer_name in name for layer_name in self.args.layers):
+                    param.requires_grad = False
+        return loss
 
 
 def train():
@@ -282,16 +353,19 @@ def train():
         model_args.model_name_or_path,
         cache_dir=training_args.cache_dir,
         model_max_length=training_args.model_max_length,
-        padding_side="right",
+        padding_side=model_args.padding_side,
         use_fast=False,
     )
-    tokenizer.pad_token = tokenizer.unk_token
+
+    if tokenizer.pad_token != tokenizer.unk_token:
+        tokenizer.pad_token = tokenizer.unk_token
 
     # Load data
     data_module = make_supervised_data_module(tokenizer=tokenizer, data_args=data_args)
 
     # Start trainner
-    trainer = Trainer(
+    # trainer = Trainer(
+    trainer = SimonTrainer(
         model=model, tokenizer=tokenizer, args=training_args, **data_module
     )
     if list(pathlib.Path(training_args.output_dir).glob("checkpoint-*")):
@@ -302,7 +376,10 @@ def train():
     # Save model
     model.config.use_cache = True
     trainer.save_state()
-    trainer_save_model_safe(trainer)
+    if trainer.is_deepspeed_enabled:
+        trainer.save_model()
+    else:
+        trainer_save_model_safe(trainer)
 
 
 if __name__ == "__main__":
