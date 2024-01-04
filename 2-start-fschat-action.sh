@@ -5,24 +5,22 @@ unset http_proxy https_proxy
 
 # 定义变量
 # previous version
-#model_path=../llama-2-zh/chinese-alpaca-2-13b-act1206-v4-t2
+#model_path=../llama-2-zh/chinese-alpaca-2-13b-act1206-v5-t2
+#model_name=text-davinci-003
+#conv_template="vicuna_v1.1"
+#max_model_len=4096
 
 # current version
-model_path=../llama-2-zh/chinese-alpaca-2-13b-act1206-v5-t2
-model_name=text-davinci-003
-conv_template="vicuna_v1.1"
-max_model_len=4096
-
-# testing
-#model_path=../QWen/Qwen-7B-Chat-act1227-v1f
+model_path=../QWen/Qwen-7B-Chat-act1227-v1f
 model_name=text-davinci-004
 conv_template="qwen-7b-chat"
 max_model_len=4096
 
+# testing
 gpu_mem_utilization=0.2
 
 # controller settings
-controller_host="http://127.0.0.1"
+controller_host=127.0.0.1
 controller_port=21001
 
 # api server host and port
@@ -30,7 +28,7 @@ api_host='0.0.0.0'
 api_port=81
 
 # worker setting
-worker_host="http://127.0.0.1"
+worker_host=127.0.0.1
 worker_port=31000
 
 
@@ -83,7 +81,7 @@ else
 fi
 
 
-python -m fastchat.serve.vllm_worker --model-path ${model_path} --model-names ${model_name} --limit-worker-concurrency 1024 --controller-address ${controller_host}:${controller_port} --num-gpus ${gpu_num} --conv-template ${conv_template} --host ${worker_host} --port ${worker_port} --worker-address ${worker_host}:${worker_port} --gpu-memory-utilization ${gpu_mem_utilization} --trust-remote-code --enforce-eager > ${worker_log} 2>&1 &
+python -m fastchat.serve.vllm_worker --model-path ${model_path} --model-names ${model_name} --limit-worker-concurrency 1024 --controller-address http://${controller_host}:${controller_port} --num-gpus ${gpu_num} --conv-template ${conv_template} --host ${worker_host} --port ${worker_port} --worker-address http://${worker_host}:${worker_port} --gpu-memory-utilization ${gpu_mem_utilization} --trust-remote-code --enforce-eager --max-model-len ${max_model_len} > ${worker_log} 2>&1 &
 
 # 启动api server
 if ! pgrep -f "fastchat.serve.openai_api_server" > /dev/null; then
