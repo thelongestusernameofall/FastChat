@@ -5,21 +5,26 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 # 定义变量
 # previous version
 #model_path=../llama-2-zh/chinese-alpaca-2-13b-act1206-v4-t2
+#conv_template="vicuna_v1.1"
+
 # current version
 model_path=../llama-2-zh/chinese-alpaca-2-13b-16k-inf1120-v17
-# testing
-#model_path=../QWen/Qwen-72B-Chat
 model_name=text-davinci-002
-#conv_template="vicuna_v1.1"
-#conv_template="qwen-7b-chat"
 conv_template="llama-2"
+max_model_len=4096
+
+# testing
+#model_path=../QWen/Qwen-7B-Chat
+#model_name=text-davinci-004
+#conv_template="qwen-7b-chat"
+max_model_len=4096
+
+gpu_mem_utilization=0.72
 
 host='0.0.0.0'
 port=81
 
 worker_port=31001
-
-gpu_mem_utilization=0.72
 
 controller_log="./logs/controller.log"
 api_log="./logs/api.log"
@@ -69,7 +74,7 @@ else
     echo "No matching processes found."
 fi
 
-python -m fastchat.serve.vllm_worker --model-path ${model_path} --model-names ${model_name} --limit-worker-concurrency 1024 --controller-address http://127.0.0.1:21001 --num-gpus ${gpu_num} --conv-template ${conv_template} --host ${host} --port ${worker_port} --worker-address http://127.0.0.1:${worker_port} --gpu-memory-utilization ${gpu_mem_utilization} --trust-remote-code --max-model-len 32000 --enforce-eager >  ${worker_log} 2>&1 &
+python -m fastchat.serve.vllm_worker --model-path ${model_path} --model-names ${model_name} --limit-worker-concurrency 1024 --controller-address http://127.0.0.1:21001 --num-gpus ${gpu_num} --conv-template ${conv_template} --host ${host} --port ${worker_port} --worker-address http://127.0.0.1:${worker_port} --gpu-memory-utilization ${gpu_mem_utilization} --trust-remote-code --max-model-len ${max_model_len} --enforce-eager >  ${worker_log} 2>&1 &
 
 # 启动api server
 if ! pgrep -f "fastchat.serve.openai_api_server" > /dev/null; then

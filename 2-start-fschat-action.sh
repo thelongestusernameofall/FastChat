@@ -3,25 +3,29 @@
 # 定义变量
 # previous version
 #model_path=../llama-2-zh/chinese-alpaca-2-13b-act1206-v4-t2
+
 # current version
 model_path=../llama-2-zh/chinese-alpaca-2-13b-act1206-v5-t2
-# testing
-#model_path=../QWen/Qwen-7B-Chat-act1227-v1f
 model_name=text-davinci-003
 conv_template="vicuna_v1.1"
+max_model_len=4096
+
+# testing
+#model_path=../QWen/Qwen-7B-Chat-act1227-v1f
+model_name=text-davinci-004
+conv_template="qwen-7b-chat"
+max_model_len=4096
+
+gpu_mem_utilization=0.2
 
 # api server host and port
 host='0.0.0.0'
 port=81
-
 worker_port=31000
-
-gpu_mem_utilization=0.2
 
 controller_log="./logs/controller.log"
 api_log="./logs/api.log"
 worker_log="./logs/action.log"
-
 
 # 获取api_log的目录路径
 api_log_dir=$(dirname $api_log)
