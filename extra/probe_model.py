@@ -12,7 +12,7 @@ import sys
 
 import torch
 import argparse
-from transformers import AutoModel
+from transformers import AutoModel, AutoModelForCausalLM
 
 
 def print_state_dict_of_model(model):
@@ -27,7 +27,12 @@ def print_named_parameters_of_model(model):
 
 
 def load_and_print_hf_model(model_dir):
-    model = AutoModel.from_pretrained(model_dir)
+    model = None
+    try:
+        model = AutoModel.from_pretrained(model_dir)
+    except:
+        model = AutoModelForCausalLM.from_pretrained(model_dir,trust_remote_code=True)
+
     print("=================[model_struct]========================")
     print(f"model: {model}")
     print("=================[state_dict]========================")
