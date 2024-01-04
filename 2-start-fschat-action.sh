@@ -14,10 +14,14 @@ conv_template="vicuna_v1.1"
 host='0.0.0.0'
 port=81
 
+worker_port=31000
+
 gpu_mem_utilization=0.2
 
 controller_log="./logs/controller.log"
 api_log="./logs/api.log"
+worker_log="./logs/action.log"
+
 
 # 获取api_log的目录路径
 api_log_dir=$(dirname $api_log)
@@ -48,7 +52,23 @@ fi
 # 启动 worker
 echo "Starting worker..."
 
-python -m fastchat.serve.vllm_worker --model-path ${model_path} --model-names ${model_name} --limit-worker-concurrency 1024 --controller-address http://127.0.0.1:21001 --num-gpus ${gpu_num} --conv-template ${conv_template} --host ${host} --port 31000 --worker-address http://127.0.0.1:31000 --gpu-memory-utilization ${gpu_mem_utilization} --trust-remote-code  >  ./logs/vllm_worker.log 2>&1 &
+# 使用 pgrep 查找满足条件的进程
+pids=$(pgrep -f "fastchat.serve.vllm_worker.*${worker_port}")
+
+# 检查是否找到了进程
+if [ -n "$pids" ]; then
+    echo "Found processes to kill: $pids"
+    # 遍历找到的每个进程 ID 并杀死它们
+    for pid in $pids; do
+        echo "Killing process $pid"
+        kill $pid
+    done
+else
+    echo "No matching processes found."
+fi
+
+
+python -m fastchat.serve.vllm_worker --model-path ${model_path} --model-names ${model_name} --limit-worker-concurrency 1024 --controller-address http://127.0.0.1:21001 --num-gpus ${gpu_num} --conv-template ${conv_template} --host ${host} --port ${worker_port} --worker-address http://127.0.0.1:${worker_port} --gpu-memory-utilization ${gpu_mem_utilization} --trust-remote-code > ${worker_log} 2>&1 &
 
 # 启动api server
 if ! pgrep -f "fastchat.serve.openai_api_server" > /dev/null; then
