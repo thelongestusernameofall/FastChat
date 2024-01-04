@@ -21,14 +21,22 @@ max_model_len=16300
 
 gpu_mem_utilization=0.72
 
-host='0.0.0.0'
-port=81
+# controller settings
+controller_host="http://127.0.0.1"
+controller_port=21001
 
+# api server host and port
+api_host='0.0.0.0'
+api_port=81
+
+# worker setting
+worker_host="http://127.0.0.1"
 worker_port=31001
+
 
 controller_log="./logs/controller.log"
 api_log="./logs/api.log"
-worker_log="./logs/inference.log"
+worker_log="./logs/action.log"
 
 # 获取api_log的目录路径
 api_log_dir=$(dirname $api_log)
@@ -51,7 +59,7 @@ gpu_num=$gpu_count
 # 检查 fastchat.serve.controller 是否运行
 if ! pgrep -f "fastchat.serve.controller" > /dev/null; then
     echo "[+] Starting fastchat.serve.controller..."
-    nohup python -m fastchat.serve.controller --host $host --port 21001 > $controller_log 2>&1 &
+    nohup python -m fastchat.serve.controller --host $controller_host --port $controller_port > $controller_log 2>&1 &
 else
     echo "[.] fastchat.serve.controller is already running."
 fi
@@ -74,11 +82,13 @@ else
     echo "No matching processes found."
 fi
 
-python -m fastchat.serve.vllm_worker --model-path ${model_path} --model-names ${model_name} --limit-worker-concurrency 1024 --controller-address http://127.0.0.1:21001 --num-gpus ${gpu_num} --conv-template ${conv_template} --host ${host} --port ${worker_port} --worker-address http://127.0.0.1:${worker_port} --gpu-memory-utilization ${gpu_mem_utilization} --trust-remote-code --max-model-len ${max_model_len} --enforce-eager >  ${worker_log} 2>&1 &
+
+python -m fastchat.serve.vllm_worker --model-path ${model_path} --model-names ${model_name} --limit-worker-concurrency 1024 --controller-address ${controller_host}:${controller_port} --num-gpus ${gpu_num} --conv-template ${conv_template} --host ${worker_host} --port ${worker_port} --worker-address ${worker_host}:${worker_port} --gpu-memory-utilization ${gpu_mem_utilization} --trust-remote-code > ${worker_log} 2>&1 &
 
 # 启动api server
 if ! pgrep -f "fastchat.serve.openai_api_server" > /dev/null; then
-    nohup python -m fastchat.serve.openai_api_server --host $host --port $port --controller-address http://127.0.0.1:21001 > ${api_log} 2>&1 &
+    echo "Starting api server ..."
+    nohup python -m fastchat.serve.openai_api_server --host $api_host --port $api_port --controller-address ${controller_host}:${controller_port} > ${api_log} 2>&1 &
 else
     echo "[.] fastchat.serve.openai_api_server is already running."
 fi
