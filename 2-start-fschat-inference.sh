@@ -22,7 +22,7 @@ max_model_len=16300
 gpu_mem_utilization=0.72
 
 # controller settings
-controller_host="http://127.0.0.1"
+controller_host="127.0.0.1"
 controller_port=21001
 
 # api server host and port
@@ -30,13 +30,13 @@ api_host='0.0.0.0'
 api_port=81
 
 # worker setting
-worker_host="http://127.0.0.1"
+worker_host="127.0.0.1"
 worker_port=31001
 
 
 controller_log="./logs/controller.log"
 api_log="./logs/api.log"
-worker_log="./logs/action.log"
+worker_log="./logs/inference.log"
 
 # 获取api_log的目录路径
 api_log_dir=$(dirname $api_log)
@@ -83,12 +83,12 @@ else
 fi
 
 
-python -m fastchat.serve.vllm_worker --model-path ${model_path} --model-names ${model_name} --limit-worker-concurrency 1024 --controller-address ${controller_host}:${controller_port} --num-gpus ${gpu_num} --conv-template ${conv_template} --host ${worker_host} --port ${worker_port} --worker-address ${worker_host}:${worker_port} --gpu-memory-utilization ${gpu_mem_utilization} --trust-remote-code --enforce-eager > ${worker_log} 2>&1 &
+python -m fastchat.serve.vllm_worker --model-path ${model_path} --model-names ${model_name} --limit-worker-concurrency 1024 --controller-address http://${controller_host}:${controller_port} --num-gpus ${gpu_num} --conv-template ${conv_template} --host ${worker_host} --port ${worker_port} --worker-address http://${worker_host}:${worker_port} --gpu-memory-utilization ${gpu_mem_utilization} --trust-remote-code --enforce-eager > ${worker_log} 2>&1 &
 
 # 启动api server
 if ! pgrep -f "fastchat.serve.openai_api_server" > /dev/null; then
     echo "Starting api server ..."
-    nohup python -m fastchat.serve.openai_api_server --host $api_host --port $api_port --controller-address ${controller_host}:${controller_port} > ${api_log} 2>&1 &
+    nohup python -m fastchat.serve.openai_api_server --host $api_host --port $api_port --controller-address http://${controller_host}:${controller_port} > ${api_log} 2>&1 &
 else
     echo "[.] fastchat.serve.openai_api_server is already running."
 fi
