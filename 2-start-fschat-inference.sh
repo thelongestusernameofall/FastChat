@@ -83,7 +83,7 @@ else
 fi
 
 
-python -m fastchat.serve.vllm_worker --model-path ${model_path} --model-names ${model_name} --limit-worker-concurrency 1024 --controller-address http://${controller_host}:${controller_port} --num-gpus ${gpu_num} --conv-template ${conv_template} --host ${worker_host} --port ${worker_port} --worker-address http://${worker_host}:${worker_port} --gpu-memory-utilization ${gpu_mem_utilization} --trust-remote-code --enforce-eager > ${worker_log} 2>&1 &
+python -m fastchat.serve.vllm_worker --model-path ${model_path} --model-names ${model_name} --limit-worker-concurrency 1024 --controller-address http://${controller_host}:${controller_port} --num-gpus ${gpu_num} --conv-template ${conv_template} --host ${worker_host} --port ${worker_port} --worker-address http://${worker_host}:${worker_port} --gpu-memory-utilization ${gpu_mem_utilization} --trust-remote-code --enforce-eager --max-model-len ${max_model_len} > ${worker_log} 2>&1 &
 
 # 启动api server
 if ! pgrep -f "fastchat.serve.openai_api_server" > /dev/null; then
