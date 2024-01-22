@@ -134,11 +134,15 @@ def get_model_list(
         models += list(openai_compatible_models_info.keys())
 
     if add_chatgpt:
+        # models += [
+        #     "gpt-4-0314",
+        #     "gpt-4-0613",
+        #     "gpt-3.5-turbo-0613",
+        #     "gpt-3.5-turbo-1106",
+        # ]
         models += [
-            "gpt-4-0314",
-            "gpt-4-0613",
-            "gpt-3.5-turbo-0613",
-            "gpt-3.5-turbo-1106",
+            "gpt-4",
+            "gpt-3.5-turbo",
         ]
     if add_claude:
         models += ["claude-2.1", "claude-2.0", "claude-instant-1"]
