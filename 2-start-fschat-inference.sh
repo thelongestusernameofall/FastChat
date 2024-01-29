@@ -1,5 +1,5 @@
 #!/bin/bash
-
+export RAY_BACKEND_LOG_LEVEL=critical
 export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 
 # 定义变量
