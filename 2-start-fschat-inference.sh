@@ -78,6 +78,7 @@ if [ -n "$pids" ]; then
         echo "Killing process $pid"
         kill $pid
     done
+    sleep 5 # 等待 5 秒
 else
     echo "No matching processes found."
 fi
