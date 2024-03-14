@@ -30,6 +30,18 @@ register_model_info(
 )
 
 register_model_info(
+    [
+        "IEITYuan/Yuan2-2B-Janus-hf",
+        "IEITYuan/Yuan2-2B-hf",
+        "IEITYuan/Yuan2-51B-hf",
+        "IEITYuan/Yuan2-102B-hf",
+    ],
+    "IEIT-Yuan2",
+    "https://github.com/IEIT-Yuan/Yuan-2.0",
+    "Yuan2.0 is a new generation Fundamental Large Language Model developed by IEIT System.",
+)
+
+register_model_info(
     ["mixtral-8x7b-instruct-v0.1", "mistral-7b-instruct"],
     "Mixtral of experts",
     "https://mistral.ai/news/mixtral-of-experts/",
@@ -163,6 +175,13 @@ register_model_info(
 )
 
 register_model_info(
+    ["tenyxchat-7b-v1"],
+    "TenyxChat-7B",
+    "https://huggingface.co/tenyx/TenyxChat-7B-v1",
+    "an open model DPO trained on top of OpenChat-3.5 using Tenyx fine-tuning",
+)
+
+register_model_info(
     ["zephyr-7b-beta", "zephyr-7b-alpha"],
     "Zephyr",
     "https://huggingface.co/HuggingFaceH4/zephyr-7b-alpha",
@@ -170,10 +189,24 @@ register_model_info(
 )
 
 register_model_info(
+    ["notus-7b-v1"],
+    "Notus",
+    "https://huggingface.co/argilla/notus-7b-v1",
+    "a chatbot fine-tuned from Zephyr SFT by Argilla",
+)
+
+register_model_info(
     ["catppt"],
     "CatPPT",
     "https://huggingface.co/rishiraj/CatPPT",
     "a chatbot fine-tuned from a SLERP merged model by Rishiraj Acharya",
+)
+
+register_model_info(
+    ["TinyLlama"],
+    "TinyLlama",
+    "https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+    "The TinyLlama project is an open endeavor to pretrain a 1.1B Llama model on 3 trillion tokens.",
 )
 
 register_model_info(
@@ -522,4 +555,11 @@ register_model_info(
     "MetaMath",
     "https://huggingface.co/meta-math",
     "MetaMath is a finetune of Llama2 on [MetaMathQA](https://huggingface.co/datasets/meta-math/MetaMathQA) that specializes in mathematical reasoning.",
+)
+
+register_model_info(
+    ["Yuan2-2B-hf", "Yuan2-51B-hf", "Yuan2-102B-hf"],
+    "IEIYuan",
+    "https://huggingface.co/IEITYuan",
+    "Yuan2 is a Basemodel developed by IEI.",
 )

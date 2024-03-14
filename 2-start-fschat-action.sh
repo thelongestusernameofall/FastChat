@@ -76,6 +76,7 @@ if [ -n "$pids" ]; then
         echo "Killing process $pid"
         kill $pid
     done
+    sleep 5 # 等待 5 秒
 else
     echo "No matching processes found."
 fi
@@ -86,7 +87,7 @@ python -m fastchat.serve.vllm_worker --model-path ${model_path} --model-names ${
 # 启动api server
 if ! pgrep -f "fastchat.serve.openai_api_server" > /dev/null; then
     echo "Starting api server ..."
-    nohup python -m fastchat.serve.openai_api_server --host $api_host --port $api_port --controller-address ${controller_host}:${controller_port} > ${api_log} 2>&1 &
+    nohup python -m fastchat.serve.openai_api_server --host $api_host --port $api_port --controller-address http://${controller_host}:${controller_port} > ${api_log} 2>&1 &
 else
     echo "[.] fastchat.serve.openai_api_server is already running."
 fi

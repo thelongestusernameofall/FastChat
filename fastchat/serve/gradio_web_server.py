@@ -134,11 +134,15 @@ def get_model_list(
         models += list(openai_compatible_models_info.keys())
 
     if add_chatgpt:
+        # models += [
+        #     "gpt-4-0314",
+        #     "gpt-4-0613",
+        #     "gpt-3.5-turbo-0613",
+        #     "gpt-3.5-turbo-1106",
+        # ]
         models += [
-            "gpt-4-0314",
-            "gpt-4-0613",
-            "gpt-3.5-turbo-0613",
-            "gpt-3.5-turbo-1106",
+            "gpt-4",
+            "gpt-3.5-turbo",
         ]
     if add_claude:
         models += ["claude-2.1", "claude-2.0", "claude-instant-1"]
@@ -672,6 +676,7 @@ def build_single_model_ui(models, add_promotion_links=False):
             elem_id="chatbot",
             label="Scroll down and start chatting",
             height=550,
+            show_copy_button=True,
         )
     with gr.Row():
         textbox = gr.Textbox(
@@ -708,7 +713,7 @@ def build_single_model_ui(models, add_promotion_links=False):
         )
         max_output_tokens = gr.Slider(
             minimum=16,
-            maximum=2048,
+            maximum=5120,
             value=1024,
             step=64,
             interactive=True,
