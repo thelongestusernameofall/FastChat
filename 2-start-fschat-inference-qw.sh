@@ -1,26 +1,30 @@
 #!/bin/bash
 
-unset http_proxy https_proxy
-#export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+export RAY_BACKEND_LOG_LEVEL=critical
+export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 
 # 定义变量
 # previous version
-#model_path=../llama-2-zh/chinese-alpaca-2-13b-act1206-v5-t2
-#model_name=text-davinci-003
+#model_path=../llama-2-zh/chinese-alpaca-2-13b-act1206-v4-t2
 #conv_template="vicuna_v1.1"
-#max_model_len=4096
 
 # current version
-model_path=../QWen/Qwen-7B-Chat-act1227-v1f
-model_name=act-davinci-004
+model_path=../QWen/Qwen-72B-Chat-Int4
+model_name=inf-davinci-004
 conv_template="qwen-7b-chat"
-max_model_len=4096
+max_model_len=29000
 
-# testing
-gpu_mem_utilization=0.2
+# test version
+model_path=../Hongshu/Hongshu-14B-chat-240313-v1
+model_name=inf-davinci-004
+conv_template="qwen-7b-chat"
+max_model_len=29000
+
+#gpu_mem_utilization=0.72
+gpu_mem_utilization=0.72
 
 # controller settings
-controller_host=127.0.0.1
+controller_host="127.0.0.1"
 controller_port=21001
 
 # api server host and port
@@ -28,13 +32,13 @@ api_host='0.0.0.0'
 api_port=81
 
 # worker setting
-worker_host=127.0.0.1
-worker_port=31000
+worker_host="127.0.0.1"
+worker_port=31001
 
 
 controller_log="./logs/controller.log"
 api_log="./logs/api.log"
-worker_log="./logs/action.log"
+worker_log="./logs/inference.log"
 
 # 获取api_log的目录路径
 api_log_dir=$(dirname $api_log)
@@ -76,6 +80,7 @@ if [ -n "$pids" ]; then
         echo "Killing process $pid"
         kill $pid
     done
+    sleep 5
 else
     echo "No matching processes found."
 fi
@@ -86,7 +91,7 @@ python -m fastchat.serve.vllm_worker --model-path ${model_path} --model-names ${
 # 启动api server
 if ! pgrep -f "fastchat.serve.openai_api_server" > /dev/null; then
     echo "Starting api server ..."
-    nohup python -m fastchat.serve.openai_api_server --host $api_host --port $api_port --controller-address ${controller_host}:${controller_port} > ${api_log} 2>&1 &
+    nohup python -m fastchat.serve.openai_api_server --host $api_host --port $api_port --controller-address http://${controller_host}:${controller_port} > ${api_log} 2>&1 &
 else
     echo "[.] fastchat.serve.openai_api_server is already running."
 fi
